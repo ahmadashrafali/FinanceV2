@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ahmad — Financial Command V3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08090D; --s1:#0E1117; --s2:#151A23; --s3:#1B2130; --bdr:#1E2530; --bdr2:#2A3242;
+  --txt:#E8E6DF; --mut:#8A93A6; --dim:#4A5265;
+  --brass:#D4A84B; --brass-soft:#D4A84B22;
+  --teal:#34C9A3; --red:#E25B5B; --amber:#E8A838; --blue:#5B9BE2; --violet:#A78BFA; --pink:#E879F9; --orange:#F0834B;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',-apple-system,sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--txt);font-family:var(--font-body);font-size:13px;max-width:480px;margin:0 auto;padding-bottom:86px;}
+.mono{font-family:var(--font-mono);}
+.card{background:var(--s1);border:1px solid var(--bdr);border-radius:16px;padding:16px;margin-bottom:10px;}
+.lbl{font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:var(--dim);margin-bottom:8px;}
+.bar-bg{background:var(--s3);border-radius:99px;height:6px;overflow:hidden;margin-top:6px;}
+.bar{height:100%;border-radius:99px;transition:width .4s ease;}
+.badge{font-family:var(--font-mono);font-size:8px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:5px;padding:2.5px 7px;white-space:nowrap;}
+.btn{border:none;border-radius:12px;padding:13px;cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:600;width:100%;transition:opacity .15s;}
+.btn:active{opacity:.7;}
+.btn-brass{background:var(--brass);color:#0B0C10;}
+.btn-ghost{background:var(--s2);border:1px solid var(--bdr);color:var(--mut);}
+.btn-sm{width:auto;padding:8px 14px;border-radius:9px;font-size:11px;}
+input[type=text],input[type=number],input[type=month]{background:var(--s2);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:var(--font-body);outline:none;width:100%;transition:border-color .15s;}
+input:focus{border-color:var(--brass);}
+input[type=range]{width:100%;accent-color:var(--brass);height:22px;}
+select{background:var(--s2);border:1px solid var(--bdr);border-radius:9px;padding:7px 10px;color:var(--txt);font-size:11px;font-family:var(--font-body);outline:none;}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:11px 20px;border-radius:12px;font-weight:600;font-size:12px;color:#0B0C10;z-index:999;display:none;white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.5);}
+/* Header */
+#hdr{padding:16px 18px 0;background:linear-gradient(180deg,var(--s1) 0%,var(--bg) 100%);position:sticky;top:0;z-index:50;border-bottom:1px solid var(--bdr);}
+.h-title{font-family:var(--font-display);font-size:19px;font-weight:700;letter-spacing:-.02em;}
+.h-eyebrow{font-family:var(--font-mono);font-size:8.5px;color:var(--brass);letter-spacing:.22em;text-transform:uppercase;margin-bottom:3px;}
+/* FIRE gauge — always-present hairline fuel gauge */
+#gauge-wrap{margin:12px -18px 0;position:relative;height:14px;}
+#gauge-track{position:absolute;inset:6px 0 auto;height:2px;background:var(--s3);}
+#gauge-fill{position:absolute;left:0;top:6px;height:2px;background:linear-gradient(90deg,var(--brass),#F2CF87);transition:width .6s ease;}
+#gauge-tick{position:absolute;top:1px;width:2px;height:12px;background:#F2CF87;border-radius:2px;transition:left .6s ease;box-shadow:0 0 8px var(--brass);}
+#gauge-lbl{position:absolute;right:14px;top:-13px;font-family:var(--font-mono);font-size:8px;color:var(--brass);letter-spacing:.1em;}
+/* Bottom nav */
+#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(11,13,18,.92);backdrop-filter:blur(14px);border-top:1px solid var(--bdr);display:flex;z-index:90;padding-bottom:env(safe-area-inset-bottom);}
+.nav-btn{flex:1;background:none;border:none;cursor:pointer;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--dim);font-family:var(--font-body);}
+.nav-btn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.nav-btn span{font-size:8.5px;font-weight:600;letter-spacing:.04em;}
+.nav-btn.active{color:var(--brass);}
+/* Segmented control */
+.seg{display:flex;background:var(--s2);border:1px solid var(--bdr);border-radius:11px;padding:3px;margin-bottom:12px;}
+.seg button{flex:1;background:none;border:none;border-radius:8px;padding:8px 4px;cursor:pointer;color:var(--mut);font-size:11px;font-weight:600;font-family:var(--font-body);}
+.seg button.active{background:var(--s3);color:var(--brass);}
+/* Position rows */
+.pos-row{background:var(--s1);border:1px solid var(--bdr);border-radius:13px;padding:12px 14px;margin-bottom:7px;cursor:pointer;transition:border-color .15s;}
+.pos-row:active{border-color:var(--bdr2);}
+.tier-head{display:flex;justify-content:space-between;align-items:baseline;margin:16px 2px 8px;}
+.tier-name{font-family:var(--font-display);font-size:12.5px;font-weight:700;letter-spacing:.01em;}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(5,6,9,.8);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:flex-end;justify-content:center;}
+.modal{background:var(--s1);border:1px solid var(--bdr2);border-radius:20px 20px 0 0;padding:20px 18px 30px;width:100%;max-width:480px;max-height:86vh;overflow-y:auto;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.stat{background:var(--s2);border-radius:11px;padding:10px 8px;text-align:center;}
+.stat .k{font-family:var(--font-mono);font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
+.stat .v{font-family:var(--font-mono);font-size:12.5px;font-weight:600;}
+.mfl{font-size:9px;color:var(--dim);margin-bottom:4px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;}
+/* Desktop: keep the mobile column, frame it properly */
+@media(min-width:768px){
+  html{background:#050609;}
+  body{max-width:520px;border-left:1px solid var(--bdr);border-right:1px solid var(--bdr);box-shadow:0 0 120px rgba(212,168,75,.05),0 0 40px rgba(0,0,0,.6);min-height:100vh;background:var(--bg);}
+  #nav{max-width:520px;}
+  html::before{content:"";position:fixed;inset:0;z-index:-1;background:
+    radial-gradient(60% 50% at 50% 0%, rgba(212,168,75,.045), transparent 70%),
+    radial-gradient(50% 40% at 85% 100%, rgba(52,201,163,.03), transparent 70%),
+    repeating-linear-gradient(0deg, transparent 0 39px, rgba(255,255,255,.012) 39px 40px),
+    repeating-linear-gradient(90deg, transparent 0 39px, rgba(255,255,255,.012) 39px 40px),
+    #050609;}
+}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+    <div>
+      <div class="h-eyebrow">Financial Command</div>
+      <div class="h-title">Ahmad Ashraf</div>
+      <div id="h-date" style="font-size:10px;color:var(--dim);margin-top:2px;font-family:var(--font-mono);"></div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-family:var(--font-mono);font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.14em;">Net Worth · IBKR</div>
+      <div id="h-nlv" class="mono" style="font-size:21px;font-weight:600;color:var(--brass);letter-spacing:-.01em;"></div>
+      <div id="h-sub" style="font-size:9px;color:var(--dim);font-family:var(--font-mono);"></div>
+    </div>
+  </div>
+  <div id="h-alert-row" style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;"></div>
+  <div id="gauge-wrap">
+    <div id="gauge-lbl"></div>
+    <div id="gauge-track"></div>
+    <div id="gauge-fill"></div>
+    <div id="gauge-tick"></div>
+  </div>
+</div>
+
+<div style="padding:14px 14px 0;">
+
+<!-- ══════════ TODAY ══════════ -->
+<div id="tab-today">
+  <div id="salary-reminder"></div>
+  <div id="cap-alerts"></div>
+  <button class="btn" id="add-btn" onclick="toggleAdd()" style="background:var(--brass-soft);border:1px solid var(--brass);color:var(--brass);margin-bottom:10px;">+ Log expense</button>
+  <div id="add-form" style="display:none;" class="card">
+    <div class="lbl">Category</div>
+    <div id="cat-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;"></div>
+    <div class="lbl">Amount (SAR)</div>
+    <input type="number" id="new-amt" inputmode="decimal" placeholder="0.00" style="font-size:24px;font-family:var(--font-mono);margin-bottom:10px;">
+    <div class="lbl">Note (optional)</div>
+    <input type="text" id="new-note" placeholder="e.g. Jahez dinner" style="margin-bottom:12px;">
+    <button class="btn btn-brass" onclick="addTxn()">Add expense</button>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <div class="lbl" style="margin:0;">Today</div>
+    <div id="today-tot" class="mono" style="font-size:11px;color:var(--brass);"></div>
+  </div>
+  <div id="today-list"></div>
+  <div id="earlier-sec" style="display:none;margin-top:16px;">
+    <div class="lbl">Earlier this month</div>
+    <div id="earlier-list"></div>
+  </div>
+</div>
+
+<!-- ══════════ MONTH ══════════ -->
+<div id="tab-month" style="display:none;">
+  <div class="seg" id="month-seg">
+    <button class="active" data-mseg="current" onclick="showMonthSeg('current')">This month</button>
+    <button data-mseg="history" onclick="showMonthSeg('history')">History</button>
+  </div>
+  <div id="mseg-current">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div class="lbl" style="margin:0;" id="caps-title">Caps</div>
+      <button onclick="toggleEdit()" id="edit-btn" class="btn btn-ghost btn-sm">Edit caps</button>
+    </div>
+    <div id="cats-list"></div>
+    <div id="unclosed-banner"></div>
+    <div style="margin-top:14px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div class="lbl" style="margin:0;">Fixed this month</div><button onclick="toggleFixedEdit()" id="fixed-edit-btn" class="btn btn-ghost btn-sm">Edit fixed</button></div><div class="card" id="fixed-list" style="padding:11px 14px;"></div></div>
+    <div class="card" style="margin-top:12px;" id="summary-card"></div>
+    <div style="margin-top:14px;">
+      <div class="lbl">Rollover mode</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button id="roll-ibkr" onclick="setRoll('ibkr')" style="flex:1;text-align:left;padding:11px 10px;border-radius:12px;cursor:pointer;font-family:var(--font-body);background:var(--brass-soft);border:1px solid var(--brass);">
+          <div style="font-size:10.5px;font-weight:700;color:var(--brass);">Surplus to IBKR</div>
+          <div style="font-size:9px;color:var(--dim);margin-top:3px;">Unspent caps go to investments</div>
+        </button>
+        <button id="roll-carry" onclick="setRoll('carry')" style="flex:1;text-align:left;padding:11px 10px;border-radius:12px;cursor:pointer;font-family:var(--font-body);background:var(--s2);border:1px solid var(--bdr);">
+          <div style="font-size:10.5px;font-weight:700;color:var(--mut);">Carry forward</div>
+          <div style="font-size:9px;color:var(--dim);margin-top:3px;">Unspent rolls to next month</div>
+        </button>
+      </div>
+      <button class="btn btn-ghost" onclick="closeMonth()">Close month and record</button>
+    </div>
+  </div>
+  <div id="mseg-history" style="display:none;">
+    <div id="hist-content"></div>
+  </div>
+</div>
+
+<!-- ══════════ PORTFOLIO ══════════ -->
+<div id="tab-portfolio" style="display:none;">
+  <div id="port-overview" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;"></div>
+  <div id="tier-strip"></div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;">
+    <button id="refresh-btn" onclick="refreshPrices()" class="btn btn-sm" style="flex:1;background:var(--s2);border:1px solid var(--teal);color:var(--teal);">↻ Refresh live prices</button>
+    <button id="pull-pos-btn" onclick="pullPositions()" class="btn btn-sm" style="flex:1;background:var(--s2);border:1px solid var(--blue);color:var(--blue);">⇊ Pull holdings from Sheets</button>
+  </div>
+  <div id="refresh-meta" style="font-family:var(--font-mono);font-size:9px;color:var(--dim);margin:-6px 2px 10px;"></div>
+  <div class="seg">
+    <button id="pt-positions" class="active" onclick="showPortSub('positions')">Positions</button>
+    <button id="pt-plan" onclick="showPortSub('plan')">Plan</button>
+    <button id="pt-rules" onclick="showPortSub('rules')">Rules</button>
+  </div>
+  <div id="psub-positions"></div>
+  <div id="psub-plan" style="display:none;"></div>
+  <div id="psub-rules" style="display:none;"></div>
+</div>
+
+<!-- ══════════ FIRE ══════════ -->
+<div id="tab-fire" style="display:none;">
+  <div class="card" style="display:flex;justify-content:center;padding:22px;border-color:#D4A84B40;background:radial-gradient(120% 120% at 50% 0%,#D4A84B0A,var(--s1) 60%);">
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="position:relative;width:150px;height:150px;">
+        <svg width="150" height="150" style="transform:rotate(-90deg)">
+          <circle cx="75" cy="75" r="60" fill="none" stroke="var(--s3)" stroke-width="9"/>
+          <circle id="fire-ring" cx="75" cy="75" r="60" fill="none" stroke="var(--brass)" stroke-width="9" stroke-linecap="round"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div id="fire-pct" class="mono" style="font-size:23px;font-weight:600;color:var(--brass);"></div>
+          <div style="font-family:var(--font-mono);font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.14em;">funded</div>
+        </div>
+      </div>
+      <div id="fire-num" class="mono" style="font-size:15px;font-weight:600;color:var(--txt);margin-top:12px;"></div>
+      <div id="fire-yrs" style="font-size:11px;color:var(--mut);margin-top:2px;"></div>
+      <div id="fire-div" style="font-size:10px;color:var(--teal);margin-top:6px;font-family:var(--font-mono);"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">Assumptions</div>
+    <div id="fire-sliders"></div>
+  </div>
+  <div class="card">
+    <div class="lbl">What moves the needle</div>
+    <div id="fire-sensitivity"></div>
+  </div>
+  <div class="card">
+    <div class="lbl">Log IBKR deposit</div>
+    <div style="display:flex;gap:8px;">
+      <input type="month" id="dep-month" style="flex:1;">
+      <input type="number" id="dep-amt" inputmode="decimal" placeholder="USD" style="flex:1.3;font-family:var(--font-mono);">
+      <button onclick="logDep()" class="btn btn-brass btn-sm" style="white-space:nowrap;">Log</button>
+    </div>
+    <div id="dep-list" style="margin-top:12px;"></div>
+  </div>
+  <div class="card">
+    <div class="lbl">Performance vs S&amp;P 500 (monthly %)</div>
+    <div id="perf-chart"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <input type="month" id="perf-month" style="flex:1.2;">
+      <input type="number" id="perf-ibkr" inputmode="decimal" placeholder="IBKR %" style="flex:1;font-family:var(--font-mono);">
+      <input type="number" id="perf-sp" inputmode="decimal" placeholder="S&P %" style="flex:1;font-family:var(--font-mono);">
+      <button onclick="logPerf()" class="btn btn-brass btn-sm">Log</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ FAMILY ══════════ -->
+<div id="tab-family" style="display:none;">
+  <div id="family-content"></div>
+</div>
+
+<!-- ══════════ SYSTEM ══════════ -->
+<div id="tab-system" style="display:none;">
+  <div class="card">
+    <div class="lbl">EGP / SAR rate</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+      <input type="number" id="egp-in" inputmode="decimal" step="0.1" style="flex:1;font-family:var(--font-mono);font-size:18px;">
+      <button onclick="setEGP(document.getElementById('egp-in').value)" class="btn btn-brass btn-sm">Set</button>
+    </div>
+    <div id="egp-breakdown"></div>
+  </div>
+  <div class="card">
+    <div class="lbl">Cash reserve (SAR) · April 2027 maintenance</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+      <input type="number" id="cash-in" inputmode="decimal" style="flex:1;font-family:var(--font-mono);font-size:18px;">
+      <button onclick="setCash(document.getElementById('cash-in').value)" class="btn btn-brass btn-sm">Set</button>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:10px;">
+      <span id="countdown" class="mono" style="font-size:22px;font-weight:600;"></span>
+      <span style="font-size:10px;color:var(--dim);">days to April 2027</span>
+    </div>
+    <div id="res-alloc"></div>
+    <div id="res-status" style="margin-top:8px;"></div>
+  </div>
+  <div class="card">
+    <div class="lbl">IBKR cash balance (USD)</div>
+    <div style="font-size:10px;color:var(--dim);margin-bottom:8px;line-height:1.5;">Counted in Net Worth alongside positions. Update after contributions or fills, or via Pull from Sheets.</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="number" id="cashusd-in" inputmode="decimal" style="flex:1;font-family:var(--font-mono);font-size:18px;">
+      <button onclick="setCashUSD(document.getElementById('cashusd-in').value)" class="btn btn-brass btn-sm">Set</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">Google Sheets sync</div>
+    <div style="font-size:10px;color:var(--dim);line-height:1.6;margin-bottom:12px;">Budget data flows dashboard → Sheets automatically on every entry. Holdings flow Sheets → dashboard via Pull. Reconcile restores everything from Sheets to this device.</div>
+    <button id="sync-btn" class="btn btn-ghost" onclick="syncAll()" style="margin-bottom:8px;">Sync everything to Sheets</button>
+    <button id="rec-btn" class="btn btn-ghost" onclick="reconcileAll()" style="margin-bottom:8px;">Reconcile from Sheets</button>
+    <div id="sync-status" style="font-family:var(--font-mono);font-size:9.5px;color:var(--dim);line-height:1.6;"></div>
+  </div>
+  <div class="card" style="border-color:#E25B5B33;">
+    <div class="lbl" style="color:var(--red);">Danger zone</div>
+    <button class="btn btn-ghost" onclick="clearMonth()" style="margin-bottom:8px;">Clear this month's transactions</button>
+    <button class="btn" onclick="resetAll()" style="background:#E25B5B18;border:1px solid #E25B5B55;color:var(--red);">Reset all local data</button>
+    <div style="font-size:9.5px;color:var(--dim);margin-top:8px;line-height:1.5;">Reset clears this device only. Reconcile from Sheets restores your history.</div>
+  </div>
+</div>
+
+</div>
+
+<!-- POSITION MODAL -->
+<div id="pos-modal" style="display:none;" class="modal-bg" onclick="if(event.target===this)closePosModal()">
+  <div class="modal" id="pos-modal-inner"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div id="nav">
+  <button class="nav-btn active" data-tab="today" onclick="showTab('today')"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg><span>Today</span></button>
+  <button class="nav-btn" data-tab="month" onclick="showTab('month')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/></svg><span>Month</span></button>
+  <button class="nav-btn" data-tab="portfolio" onclick="showTab('portfolio')"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 3 6-7 3 3"/><path d="M3 21h18"/></svg><span>Portfolio</span></button>
+  <button class="nav-btn" data-tab="fire" onclick="showTab('fire')"><svg viewBox="0 0 24 24"><path d="M12 3c1 4-4 5.5-4 10a4 4 0 0 0 8 0c0-2-1-3.5-1-3.5s3 1 3 4.5a6 6 0 0 1-12 0C6 8 11 7 12 3z"/></svg><span>FIRE</span></button>
+  <button class="nav-btn" data-tab="family" onclick="showTab('family')"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.4"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M14.5 20c0-2.6 1.5-4.4 4-4.4 1.4 0 2.5.6 3.5 1.6"/></svg><span>Family</span></button>
+  <button class="nav-btn" data-tab="system" onclick="showTab('system')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.06-.4.1-.8.1-1.2z"/></svg><span>System</span></button>
+</div>
+
+<script>
+"use strict";
+// ════════════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════════════
+var SCRIPT_URL="https://script.google.com/macros/s/AKfycbxpO1ieDPSZerdPI275iyWccfyYNzD_GuTciqGnmpjHKBH77iDAANnocQ4Ghyapwr8mtw/exec";
+var FINNHUB_KEY="d8cceupr01qidic7bhigd8cceupr01qidic7bhj0";
+var SALARY=140000, SAR_USD=1/3.75;
+var EGP_A=432225, EGP_B=638934, EGP_AXA=25000, EGP_M=1707225;
+var LS_KEY="ahmad-fin-v3";
+var LS_KEY_OLD="ahmad-fin-v2"; // migrated on first load
+var FIRE_AGE_BASE=33;
+
+var CATS=[
+  {k:"food", l:"Food Delivery",  c:"#E8A838"},
+  {k:"ride", l:"Ride Hailing",   c:"#5B9BE2"},
+  {k:"shop", l:"Shopping",       c:"#A78BFA"},
+  {k:"rest", l:"Restaurants",    c:"#E25B5B"},
+  {k:"fun",  l:"Entertainment",  c:"#34C9A3"},
+  {k:"groc", l:"Groceries",      c:"#7AABCC"},
+  {k:"health",l:"Health",        c:"#F0A0A0"},
+  {k:"cash", l:"Cash",           c:"#A0A0A0"},
+  {k:"other",l:"Other",          c:"#888888"}
+];
+
+// ════════════════════════════════════════════════════════════════
+// TIERS — master plan structure (July 2026)
+// ════════════════════════════════════════════════════════════════
+var TIERS=[
+  {k:"def", name:"Defensive / Passive",     c:"#D4A84B", rule:"DCA. Never sell. FIRE foundation."},
+  {k:"ai",  name:"Core — AI / Semis",       c:"#5B9BE2", rule:"Capped correlated cluster. 12% NAV ceiling is the only trim trigger."},
+  {k:"saas",name:"Core — SaaS",             c:"#34C9A3", rule:"Capped correlated cluster. Thesis-driven holds."},
+  {k:"ind", name:"Core — Independent",      c:"#A78BFA", rule:"Uncorrelated compounders. Exit only on thesis break."},
+  {k:"div", name:"Core — Diversifiers",     c:"#6FCBE8", rule:"New builds. Range-aware ladder entries only."},
+  {k:"sec", name:"Secondary",               c:"#E8A838", rule:"Smaller conviction. Trim at targets."},
+  {k:"tran",name:"Transition",              c:"#F0834B", rule:"Decision pending a named catalyst. No new capital."},
+  {k:"moon",name:"Speculative / Moonshot",  c:"#E879F9", rule:"Multi-year holds, ~5% aggregate. Accept full loss. Never rescue."},
+  {k:"exit",name:"Exit",                    c:"#E25B5B", rule:"No thesis. Exit on strength, no time pressure unless noted."}
+];
+function tierOf(k){for(var i=0;i<TIERS.length;i++){if(TIERS[i].k===k)return TIERS[i];}return TIERS[5];}
+
+// ════════════════════════════════════════════════════════════════
+// POSITIONS — baked from live IBKR pull (U16642403), July 2, 2026,
+// plus master-plan targets/status/notes. qty/avg = broker truth.
+// status: strengthening | intact | weakening | broken | building | exit
+// Ongoing maintenance: Google Sheets "Positions" tab → Pull button.
+// ════════════════════════════════════════════════════════════════
+var POSITIONS_SEED=[
+{t:"VOO", name:"Vanguard S&P 500",     tier:"def", qty:52.7901, avg:609.48,  price:693.50,  target:60000, status:"intact", dy:1.2, note:"STRONG BUY (DCA) - monthly, price-agnostic. Never sell. $23K to target."},
+{t:"QQQ", name:"Invesco Nasdaq-100",   tier:"def", qty:23.0158, avg:621.68,  price:726.30,  target:30000, status:"intact", dy:0.6, note:"BUY (DCA) - monthly alongside VOO. $13K to target."},
+{t:"GLD", name:"SPDR Gold Shares",     tier:"def", qty:42.7314, avg:421.68,  price:377.01,  target:20000, status:"intact", dy:0,   note:"BUY (ladder) - GTC 1 @ $370 resting. EGP hedge; keep building to $20K."},
+{t:"VXUS",name:"Vanguard Intl",        tier:"def", qty:55.8308, avg:82.12,   price:85.34,   target:10000, status:"intact", dy:2.8, note:"BUY (DCA) - small monthly allocation. $5K to target."},
+{t:"MU",  name:"Micron Technology",    tier:"ai",  qty:28.8633, avg:443.79,  price:982.98,  target:35000, status:"strengthening", dy:0.4, note:"HOLD - no profit trims, 12% NAV ceiling only. Adds reserved for a real pullback, not strength."},
+{t:"NBIS",name:"Nebius Group",         tier:"ai",  qty:122.7054,avg:122.12,  price:220.00,  target:35000, status:"strengthening", dy:0, note:"HOLD - thesis strengthening but extended. Adds on meaningful pullback only."},
+{t:"NVDA",name:"NVIDIA",               tier:"ai",  qty:119.2941,avg:181.61,  price:210.58,  target:30000, status:"intact", dy:0.03, note:"HOLD - $5K gap to target; add only on pullback with intact guidance."},
+{t:"ANET",name:"Arista Networks",      tier:"ai",  qty:93.465,  avg:128.37,  price:186.96,  target:20000, status:"intact", dy:0, note:"BUY on dips - $2.5K to target. Margin-compression dips are the entry."},
+{t:"CDNS",name:"Cadence Design",       tier:"ai",  qty:22.0492, avg:317.79,  price:384.17,  target:15000, status:"intact", dy:0, note:"BUY - build toward $15K on confirmation or dips. $6.5K to go."},
+{t:"SKHY",name:"SK Hynix ADR",         tier:"ai",  qty:50,      avg:170.85,  price:172.09,  target:0,     status:"intact", dy:0, note:"HOLD - sized as bought. No adds without an AI-cluster decision (cluster ~22% NAV)."},
+{t:"CRM", name:"Salesforce",           tier:"saas",qty:165.9896,avg:211.21,  price:163.32,  target:35000, status:"intact", dy:0.7, note:"BUY on confirmation - beaten down, build toward $35K only on cRPO/guidance proof. $8K gap."},
+{t:"NOW", name:"ServiceNow",           tier:"saas",qty:286.398, avg:96.32,   price:107.71,  target:35000, status:"intact", dy:0, note:"BUY on confirmation - $4K to target. Add after next beat-and-raise, not before."},
+{t:"CRWD",name:"CrowdStrike",          tier:"saas",qty:85.0196, avg:117.73,  price:186.75,  target:20000, status:"strengthening", dy:0, note:"BUY on dips - $4K to target. Post-split (4:1 Jul '26). No chasing strength."},
+{t:"ADBE",name:"Adobe",                tier:"saas",qty:98.6017, avg:287.05,  price:223.65,  target:0,     status:"weakening", dy:0, note:"HOLD - no adds. Trimmed Jul '26. Reassess at next earnings; exit if AI-disruption thesis worsens."},
+{t:"ELF", name:"e.l.f. Beauty",        tier:"ind", qty:333.2204,avg:59.95,   price:76.75,   target:0,     status:"intact", dy:0, note:"HOLD at size - no target, no adds. Let it compound."},
+{t:"SHOP",name:"Shopify",              tier:"ind", qty:148.7727,avg:103.91,  price:122.58,  target:0,     status:"intact", dy:0, note:"HOLD at size - trimmed 22 sh Jul '26. No further action planned."},
+{t:"MELI",name:"MercadoLibre",         tier:"ind", qty:10.953,  avg:1613.09, price:1858.00, target:20000, status:"intact", dy:0, note:"HOLD - at target. No action."},
+{t:"DDOG",name:"Datadog",              tier:"ind", qty:78.2335, avg:120.98,  price:257.70,  target:20000, status:"strengthening", dy:0, note:"HOLD - at target. No action."},
+{t:"SNOW",name:"Snowflake",            tier:"ind", qty:67.0369, avg:155.50,  price:261.45,  target:20000, status:"intact", dy:0, note:"BUY small on dips - $2.5K to target. Re-acceleration confirmed."},
+{t:"INTU",name:"Intuit",               tier:"ind", qty:35.3659, avg:300.49,  price:274.52,  target:15000, status:"intact", dy:0.6, note:"BUY - near 52-wk lows, conviction add zone. $5K to target."},
+{t:"UBER",name:"Uber Technologies",    tier:"ind", qty:20.8463, avg:72.00,   price:74.54,   target:10000, status:"building", dy:0, note:"BUY (ladder) - GTC 14 sh @ $71.50 resting. Building toward $10K."},
+{t:"CEG", name:"Constellation Energy", tier:"div", qty:18.5219, avg:242.04,  price:251.00,  target:10000, status:"building", dy:0.5, note:"BUY (ladder) - GTC 2 @ $247.50 + 2 @ $242.50 resting. $5K to target."},
+{t:"ISRG",name:"Intuitive Surgical",   tier:"div", qty:5.7716,  avg:401.62,  price:407.01,  target:0,     status:"building", dy:0, note:"BUY (ladder starter) - near 52-wk low. Full target TBD; size next tranche on weakness."},
+{t:"CCJ", name:"Cameco",               tier:"div", qty:21,      avg:98.42,   price:95.50,   target:0,     status:"building", dy:0.1, note:"BUY (ladder) - GTC 6 @ $91.50, 6 @ $90, 12 @ $87.50 resting. Full target TBD."},
+{t:"GOOGL",name:"Alphabet",            tier:"div", qty:0,       avg:0,       price:0,       target:20000, status:"building", dy:0.4, note:"BUY (ladder entry only) - draft 3-tranche ladder on next pullback. $20K target."},
+{t:"V",   name:"Visa",                 tier:"div", qty:0,       avg:0,       price:0,       target:10000, status:"building", dy:0.8, note:"BUY (ladder entry only) - $10K target. Shariah gray-area accepted."},
+{t:"TEM", name:"Tempus AI",            tier:"div", qty:0,       avg:0,       price:0,       target:10000, status:"building", dy:0, note:"BUY (ladder entry only) - $10K target. Uncorrelated healthcare-AI."},
+{t:"DASH",name:"DoorDash",             tier:"div", qty:0,       avg:0,       price:0,       target:10000, status:"building", dy:0, note:"BUY (ladder entry only) - $10K target. Independent of UBER thesis."},
+{t:"SE",  name:"Sea Limited",          tier:"div", qty:0,       avg:0,       price:0,       target:10000, status:"building", dy:0, note:"BUY (DCA cadence) - $10K target. Part of rolling entry program."},
+{t:"ETN", name:"Eaton",                tier:"div", qty:0,       avg:0,       price:0,       target:10000, status:"building", dy:1.0, note:"BUY (ladder entry only) - $10K target. Zero tech correlation."},
+{t:"CELH",name:"Celsius Holdings",     tier:"sec", qty:344.3728,avg:29.06,   price:30.60,   target:15000, status:"intact", dy:0, note:"BUY small on dips - $4.5K to target. No chasing."},
+{t:"ZETA",name:"Zeta Global",          tier:"sec", qty:360.1394,avg:16.70,   price:21.49,   target:10000, status:"intact", dy:0, note:"BUY (DCA) - $2.3K to target. Beat-and-raise streak intact."},
+{t:"NVO", name:"Novo Nordisk",         tier:"sec", qty:456.698, avg:43.80,   price:49.49,   target:10000, status:"weakening", dy:2.1, note:"TRIM on strength - reduce toward $10K (currently ~$22.6K). Lilly pressure; use rallies to cut."},
+{t:"BMRN",name:"BioMarin",             tier:"sec", qty:180,     avg:54.61,   price:59.21,   target:10000, status:"intact", dy:0, note:"HOLD - at target after trim. No action."},
+{t:"NKE", name:"Nike",                 tier:"sec", qty:115.3483,avg:43.88,   price:44.37,   target:0,     status:"weakening", dy:3.5, note:"HOLD - decision at Q2 FY27 gross margin ex-tariff: inflect = add toward $5K; slip = exit. DRIP on."},
+{t:"BABA",name:"Alibaba ADR",          tier:"sec", qty:39.0913, avg:128.01,  price:112.33,  target:0,     status:"weakening", dy:1.1, note:"HOLD - no adds. Geopolitics + DoD blacklist suit cap conviction."},
+{t:"TTD", name:"The Trade Desk",       tier:"tran",qty:446.9874,avg:23.50,   price:19.55,   target:0,     status:"weakening", dy:0, note:"HOLD - decide at Aug earnings. Win-backs real vs CRO exit + fiduciary probe. No new capital."},
+{t:"ZS",  name:"Zscaler",              tier:"tran",qty:147.723, avg:152.43,  price:139.27,  target:0,     status:"weakening", dy:0, note:"HOLD - decide at next guidance update. FY27 overhang. No new capital."},
+{t:"MSTR",name:"Strategy Inc",         tier:"tran",qty:144.0704,avg:242.62,  price:94.64,   target:0,     status:"broken", dy:0, note:"EXIT on bounce - 2-3 qtr backstop. Jul 17 $125C expires this week: re-write call or start exit."},
+{t:"SERV",name:"Serve Robotics",       tier:"moon",qty:406.7698,avg:6.25,    price:5.96,    target:2000,  status:"intact", dy:0, note:"HOLD - at target (slightly over). DCA complete."},
+{t:"LUNR",name:"Intuitive Machines",   tier:"moon",qty:178,     avg:16.91,   price:16.14,   target:6000,  status:"building", dy:0, note:"BUY (DCA, 2-wk cadence) - $3.1K to target. GTC 77 sh @ $13 resting."},
+{t:"NTLA",name:"Intellia Therapeutics",tier:"moon",qty:0,       avg:0,       price:0,       target:6000,  status:"building", dy:0, note:"BUY (DCA, 2-wk cadence) - $6K target, not started."},
+{t:"IONQ",name:"IonQ",                 tier:"moon",qty:0,       avg:0,       price:0,       target:5000,  status:"building", dy:0, note:"BUY (DCA, small) - $5K target, not started."},
+{t:"IREN",name:"IREN Ltd",             tier:"moon",qty:0,       avg:0,       price:0,       target:4000,  status:"building", dy:0, note:"BUY (DCA, small) - $4K target. Replaced ASTS (defense exclusion)."},
+{t:"CRWV",name:"CoreWeave",            tier:"moon",qty:0,       avg:0,       price:0,       target:5000,  status:"building", dy:0, note:"BUY (DCA, small) - $5K target. Fragile balance sheet: never upsize."},
+{t:"BEAM",name:"Beam Therapeutics",    tier:"moon",qty:0,       avg:0,       price:0,       target:3500,  status:"building", dy:0, note:"WAIT - parked at 52-wk high. No entry until it comes in. $3.5K target."},
+{t:"RDW", name:"Redwire",              tier:"moon",qty:0,       avg:0,       price:0,       target:2500,  status:"building", dy:0, note:"BUY (DCA, small) - $2.5K target, not started."},
+{t:"RGTI",name:"Rigetti Computing",    tier:"moon",qty:60,      avg:16.69,   price:16.64,   target:2500,  status:"building", dy:0, note:"BUY (DCA, 2-wk cadence) - $1.5K to target."},
+{t:"NNE", name:"Nano Nuclear",         tier:"exit",qty:100,     avg:25.31,   price:18.87,   target:0,     status:"exit", dy:0, note:"EXIT - on any strength. No thesis, no urgency, no adds."},
+{t:"OPTT",name:"Ocean Power Tech",     tier:"exit",qty:10559,   avg:0.2883,  price:0.2210,  target:0,     status:"exit", dy:0, note:"EXIT - on a price pop. Tiny position, zero urgency. Confirm the Jul share-count add."}
+];
+
+var STATUS_META={
+  strengthening:{c:"#34C9A3",l:"Strengthening"},
+  intact:{c:"#5B9BE2",l:"Intact"},
+  weakening:{c:"#E8A838",l:"Weakening"},
+  broken:{c:"#E25B5B",l:"Broken"},
+  building:{c:"#A78BFA",l:"Building"},
+  exit:{c:"#E25B5B",l:"Exit"}
+};
+
+var RULES=[
+ ["Thesis over price","Exit decisions come from thesis status — strengthening, intact, weakening, broken — never from a price rule. The 8% mechanical trim is retired."],
+ ["12% NAV ceiling","The only size-based trigger. Winners are never trimmed just for being up a lot."],
+ ["Range-aware ladders","Three-tranche entries calibrated to the 52-week range. Zero allocated at today's price for names extended near highs."],
+ ["Live data before verdicts","No table, sizing call, or price reference without a fresh pull. Same-session numbers go stale the moment price moves."],
+ ["Cash buffer 10-15%","Deliberate posture across accounts, deployed opportunistically in volatility — not idle by accident."],
+ ["Correlation, not count","40+ names is fine. What's capped is each correlated bet: AI-infrastructure hardware is one bet, SaaS is one bet."],
+ ["Confirmation triggers adds","Earnings beat, raised guidance, share gain. Price momentum alone is never a reason."],
+ ["One-time items stripped","Every earnings verdict states the core number ex-settlements and tariff recoveries."],
+ ["The SEZL rule","The moment an exit is decided, the order goes in. Five trading days to execute."],
+ ["No rescue adds","Never add to a losing position to repair it."],
+ ["Screens","Hard exclusions: US defense industry, Israeli-originating companies, consumer-health-harm. Gray areas flagged for a call, never auto-excluded."],
+ ["DCA is not optional","Monthly $15K contribution runs regardless of market conditions or headlines."]
+];
+
+// ════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════
+function defaultState(){
+  return {
+    egpRate:14, cashReserve:286000, cashUSD:837,
+    caps:{food:600,ride:700,shop:1000,rest:300,fun:500,groc:200,health:400,cash:300,other:500},
+    fixedItems:[{n:"Rent KSA",a:10417},{n:"Calo meal plan",a:1080},{n:"Subscriptions",a:1357}],
+    family:{
+      schd:{val:8855,contrib:300}, bnd:{val:400,contrib:200},
+      items:[{n:"Parents rent",a:2350},{n:"Living costs",a:1000},{n:"Mom credit card",a:500},{n:"Sisters side cash",a:650},{n:"Father side cash",a:500}],
+      log:[]
+    },
+    transactions:[], monthHistory:[],
+    ibkrHistory:[
+      {month:"2025-06",usd:2910},{month:"2025-07",usd:23930},{month:"2025-09",usd:89730},
+      {month:"2025-10",usd:49850},{month:"2025-11",usd:29910},{month:"2025-12",usd:39880},
+      {month:"2026-01",usd:49850},{month:"2026-02",usd:34910},{month:"2026-03",usd:14970},
+      {month:"2026-04",usd:52380},{month:"2026-05",usd:34910},{month:"2026-06",usd:14970},
+      {month:"2026-07",usd:14970}
+    ],
+    rollMode:"ibkr", editCaps:false, editFixed:false, editFam:false, selCat:"food",
+    positions:null, portSubTab:"positions", monthSeg:"current",
+    lastRefresh:0, positionsVersion:"2026-07-11",
+    spouse:{income:0,fixed:0,variable:0,ibkr:0,contrib:0,note:""},
+    fire:{spend:82000,contrib:15000,swr:3.5,ret:8,rental:8000,divEnabled:true},
+    perfHistory:[
+      {month:"2025-07",ibkr:1.03,sp:4.42},{month:"2025-08",ibkr:1.54,sp:1.79},
+      {month:"2025-09",ibkr:6.04,sp:2.73},{month:"2025-10",ibkr:0.04,sp:2.30},
+      {month:"2025-11",ibkr:-13.89,sp:0.08},{month:"2025-12",ibkr:0.82,sp:1.66},
+      {month:"2026-01",ibkr:3.81,sp:1.11},{month:"2026-02",ibkr:-6.50,sp:-0.51},
+      {month:"2026-03",ibkr:-4.14,sp:-3.47},{month:"2026-04",ibkr:16.08,sp:4.55},
+      {month:"2026-05",ibkr:22.27,sp:5.72},{month:"2026-06",ibkr:-3.78,sp:-1.0}
+    ]
+  };
+}
+
+function loadState(){
+  try{
+    var raw=localStorage.getItem(LS_KEY);
+    if(raw){
+      var s=JSON.parse(raw), d=defaultState();
+      for(var k in d){ if(s[k]===undefined) s[k]=d[k]; }
+      if(s.positionsVersion!==d.positionsVersion){ s.positions=null; s.positionsVersion=d.positionsVersion; }
+      migrate(s);
+      return s;
+    }
+    // Migrate budgeting data from V2 if present (V2 positions were stale — intentionally not migrated)
+    var old=localStorage.getItem(LS_KEY_OLD);
+    if(old){
+      var o=JSON.parse(old), d2=defaultState();
+      ["egpRate","cashReserve","caps","transactions","monthHistory","ibkrHistory","rollMode","spouse","perfHistory"].forEach(function(k){
+        if(o[k]!==undefined&&o[k]!==null) d2[k]=o[k];
+      });
+      if(o.fire){ d2.fire=Object.assign(d2.fire,o.fire); if(d2.fire.contrib<15000) d2.fire.contrib=15000; }
+      return d2;
+    }
+  }catch(e){}
+  return defaultState();
+}
+
+// One-time data migrations for devices carrying older state. Never deletes user data.
+function migrate(s){
+  if((s.dataVersion||1)>=2) return;
+  // Verified from the IBKR inception report (Jun 26 '25 – Jul 10 '26):
+  // May 2026 TWR was +22.27 (not 12.53); June 2026 was −3.78 (S&P ≈ −1.0).
+  (s.perfHistory||[]).forEach(function(p){ if(p.month==="2026-05"&&Math.abs(p.ibkr-12.53)<0.01) p.ibkr=22.27; });
+  if(!(s.perfHistory||[]).some(function(p){return p.month==="2026-06";})) s.perfHistory.push({month:"2026-06",ibkr:-3.78,sp:-1.0});
+  // Seed complete gross cash-deposit history (transfers excluded); overwrite by month, keep anything else the user logged
+  var dep={"2025-06":2910,"2025-07":23930,"2025-09":89730,"2025-10":49850,"2025-11":29910,"2025-12":39880,"2026-01":49850,"2026-02":34910,"2026-03":14970,"2026-04":52380,"2026-05":34910,"2026-06":14970,"2026-07":14970};
+  s.ibkrHistory=(s.ibkrHistory||[]).filter(function(h){return !dep[h.month];});
+  Object.keys(dep).forEach(function(m){s.ibkrHistory.push({month:m,usd:dep[m]});});
+  // Family portfolio values per report (only if still at old defaults — user edits win)
+  if(s.family){ if(s.family.schd&&s.family.schd.val===8431) s.family.schd.val=8855; if(s.family.bnd&&s.family.bnd.val===201) s.family.bnd.val=400; }
+  s.cashUSD=837;
+  s.dataVersion=2;
+}
+var S=loadState();
+function saveState(){ try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){} }
+function getPositions(){ return S.positions||POSITIONS_SEED; }
+
+// ════════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════════
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+function fS(n){return Math.round(n).toLocaleString();}
+function fU(n){return "$"+Math.round(n).toLocaleString();}
+function fK(n){var a=Math.abs(n);return a>=1e6?"$"+(n/1e6).toFixed(2)+"M":a>=1000?"$"+Math.round(n/1000)+"K":"$"+Math.round(n);}
+function parseMonth(val){
+  if(!val) return "";
+  var s=String(val).trim();
+  if(/^\d{4}-\d{2}$/.test(s)) return s;
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,7);
+  try{var d=new Date(s);if(!isNaN(d.getTime()))return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2);}catch(e){}
+  return s.slice(0,7);
+}
+function nowM(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2);}
+function toDay(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+function mType(m){var n=parseInt(m.slice(5,7),10);if(n===1||n===4||n===7||n===10)return "A";if(n===2||n===5||n===8||n===11)return "B";return "light";}
+function mLabel(m){var p=m.split("-");return new Date(+p[0],+p[1]-1).toLocaleString("en-GB",{month:"short",year:"2-digit"});}
+function pSAR(t){return t==="A"?EGP_A/S.egpRate:t==="B"?EGP_B/S.egpRate:0;}
+function getSpent(month){var sp={};CATS.forEach(function(c){sp[c.k]=0;});var m=String(month).trim();S.transactions.forEach(function(t){var tm=parseMonth(t.month||"");if(tm===m&&sp[t.cat]!==undefined)sp[t.cat]+=t.amount;});return sp;}
+
+function fixedBase(){return (S.fixedItems||[]).reduce(function(s,i){return s+(parseFloat(i.a)||0);},0);}
+function familyPlannedUSD(){
+  var f=S.family||{};
+  var t=((f.schd&&f.schd.contrib)||0)+((f.bnd&&f.bnd.contrib)||0);
+  (f.items||[]).forEach(function(i){t+=(parseFloat(i.a)||0);});
+  return t;
+}
+function familyLoggedUSD(month){
+  var f=S.family||{};
+  return (f.log||[]).filter(function(l){return parseMonth(l.month)===month;}).reduce(function(s,l){return s+(parseFloat(l.amount)||0);},0);
+}
+function posVal(p){return (p.qty||0)*(p.price||0);}
+function posCost(p){return (p.qty||0)*(p.avg||0);}
+function posPnl(p){return posVal(p)-posCost(p);}
+function posPct(p){var c=posCost(p);return c>0?((posVal(p)-c)/c*100):0;}
+function positionsValue(){return getPositions().reduce(function(s,p){return s+posVal(p);},0);}
+function liveNLV(){return positionsValue()+(S.cashUSD||0);}
+function annualDividends(){
+  return getPositions().reduce(function(s,p){
+    return s+((p.qty>0&&p.dy>0)?posVal(p)*(p.dy/100):0);
+  },0);
+}
+
+// ════════════════════════════════════════════════════════════════
+// FIRE
+// ════════════════════════════════════════════════════════════════
+function calcFire(spend,swr,ret,contrib,rental,divIncome,start){
+  var fn=(spend-rental-(divIncome||0))/(swr/100);
+  if(fn<=0) fn=1;
+  var mr=(ret/100)/12;
+  var v=(start!==undefined?start:liveNLV()), m=0;
+  var v0=v;
+  while(v<fn&&m<600){v=v*(1+mr)+contrib;m++;}
+  return {fn:fn,years:(m/12).toFixed(1),age:Math.round(FIRE_AGE_BASE+m/12),pct:Math.min(100,(v0/fn)*100)};
+}
+
+// ════════════════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════════════════
+var toastTimer=null;
+function toast(msg,err){
+  var el=document.getElementById("toast");
+  el.textContent=msg;el.style.background=err?"#E25B5B":"#34C9A3";el.style.display="block";
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){el.style.display="none";},3000);
+}
+
+// ════════════════════════════════════════════════════════════════
+// GOOGLE SHEETS — same protocol as V2; budget writes unchanged.
+// Positions are READ-ONLY from the "Positions" sheet (source of truth).
+// ════════════════════════════════════════════════════════════════
+function sheetsPost(body){
+  return fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(body)}).then(function(r){return r.json();});
+}
+function sheetsAppend(sheet,row){return sheetsPost({sheet:sheet,action:"append",row:row});}
+function sheetsRead(sheet,range){
+  return sheetsPost({sheet:sheet,action:"read",range:range||"A1:Z5000"}).then(function(d){if(d.error)throw new Error(d.error);return d.values||[];});
+}
+function sheetsWrite(sheet,row,rowNum){return sheetsPost({sheet:sheet,action:"write",row:row,rowNum:rowNum});}
+
+// Two-way sync: any in-app plan edit rewrites the whole Positions sheet.
+var pushingPositions=false;
+function pushPositionsToSheets(){
+  if(pushingPositions) return Promise.resolve();
+  pushingPositions=true;
+  var pos=getPositions();
+  var prevLen=S.posSheetLen||pos.length;
+  var rows=[["Ticker","Name","Tier","Qty","AvgPrice","Target","Status","Note","DivYield"]];
+  pos.forEach(function(p){rows.push([p.t,p.name,p.tier,p.qty,p.avg,p.target,p.status,p.note||"",p.dy||0]);});
+  var blanks=Math.max(0,prevLen-pos.length)+3;
+  for(var i=0;i<blanks;i++) rows.push(["","","","","","","","",""]);
+  var chain=Promise.resolve();
+  rows.forEach(function(r,idx){ chain=chain.then(function(){return sheetsWrite("Positions",r,idx+1);}); });
+  return chain.then(function(){
+    S.posSheetLen=pos.length;saveState();
+    toast("Plan synced to Sheets");
+    pushingPositions=false;
+  }).catch(function(e){
+    pushingPositions=false;
+    toast("Saved locally — Sheets sync failed",true);
+  });
+}
+
+function syncAll(){
+  var btn=document.getElementById("sync-btn");
+  btn.textContent="Syncing...";btn.disabled=true;
+  var status=document.getElementById("sync-status");
+  status.textContent="Starting sync...";
+  var nm=nowM();
+  var mTxns=S.transactions.filter(function(t){return String(t.month).trim()===nm;});
+  Promise.all(mTxns.map(function(t){return sheetsAppend("Transactions",[t.date,t.month,t.cat,t.amount,t.note||""]);}))
+  .then(function(){
+    status.textContent="Transactions synced. Monthly summary...";
+    if(S.monthHistory.length){
+      var mh=S.monthHistory[S.monthHistory.length-1];
+      return sheetsAppend("Monthly",[mh.month,mh.investedSAR,mh.investedUSD,mh.surplusSAR,mh.fixedTotal,mh.totalOut,mh.rollMode,JSON.stringify(mh.cats),JSON.stringify(mh.caps)]);
+    }
+  }).then(function(){
+    status.textContent="Settings...";
+    var settings=[
+      ["egpRate",S.egpRate],["ibkrValue",Math.round(liveNLV())],["cashReserve",S.cashReserve],
+      ["cashUSD",S.cashUSD],["caps",JSON.stringify(S.caps)],["rollMode",S.rollMode],
+      ["ibkrHistory",JSON.stringify(S.ibkrHistory)],["fireSettings",JSON.stringify(S.fire)],
+      ["spouseData",JSON.stringify(S.spouse)],["fixedItems",JSON.stringify(S.fixedItems)],
+      ["familyData",JSON.stringify({schd:S.family.schd,bnd:S.family.bnd,items:S.family.items})]
+    ];
+    return Promise.all(settings.map(function(row){return sheetsAppend("Settings",row);}));
+  }).then(function(){
+    status.textContent="Performance...";
+    if(S.perfHistory&&S.perfHistory.length){
+      var latest=S.perfHistory[S.perfHistory.length-1];
+      return sheetsAppend("Performance",[latest.month,latest.ibkr,latest.sp]);
+    }
+  }).then(function(){
+    status.textContent="Synced to Google Sheets at "+new Date().toLocaleTimeString();
+    btn.textContent="Sync everything to Sheets";btn.disabled=false;
+    toast("Synced to Sheets");
+  }).catch(function(e){
+    status.textContent="Sync failed: "+(e.message||e)+". Check connection and Apps Script deployment.";
+    btn.textContent="Sync everything to Sheets";btn.disabled=false;
+    toast("Sync failed",true);
+  });
+}
+
+function reconcileAll(){
+  var btn=document.getElementById("rec-btn");
+  btn.textContent="Loading...";btn.disabled=true;
+  var status=document.getElementById("sync-status");
+  status.textContent="Reconciling from Sheets...";
+  sheetsRead("Transactions","A2:E5000").then(function(rows){
+    var txns=[];
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i];
+      if(!r[0]||r[0]==="Date") continue;
+      var ds=String(r[0]).trim(), ms=parseMonth(ds), amt=parseFloat(r[3]);
+      if(!amt||amt<=0) continue;
+      txns.push({id:i+1,date:ds,month:ms,cat:String(r[2]||"other").trim(),amount:amt,note:String(r[4]||"")});
+    }
+    S.transactions=txns;
+    status.textContent="Transactions loaded. Settings...";
+    return sheetsRead("Settings","A2:B300");
+  }).then(function(rows){
+    rows.forEach(function(r){
+      if(!r[0]) return;
+      var k=String(r[0]).trim(), v=String(r[1]||"").trim();
+      if(k==="egpRate") S.egpRate=parseFloat(v)||14;
+      else if(k==="cashReserve") S.cashReserve=parseFloat(v)||S.cashReserve;
+      else if(k==="cashUSD") S.cashUSD=parseFloat(v)||S.cashUSD;
+      else if(k==="caps"){try{S.caps=JSON.parse(v);}catch(e){}}
+      else if(k==="rollMode") S.rollMode=v;
+      else if(k==="ibkrHistory"){try{S.ibkrHistory=JSON.parse(v);}catch(e){}}
+      else if(k==="fireSettings"){try{S.fire=Object.assign(S.fire,JSON.parse(v));}catch(e){}}
+      else if(k==="spouseData"){try{S.spouse=Object.assign(S.spouse,JSON.parse(v));}catch(e){}}
+      else if(k==="fixedItems"){try{var fi=JSON.parse(v);if(Array.isArray(fi))S.fixedItems=fi;}catch(e){}}
+      else if(k==="familyData"){try{var fd=JSON.parse(v);S.family.schd=fd.schd||S.family.schd;S.family.bnd=fd.bnd||S.family.bnd;if(Array.isArray(fd.items))S.family.items=fd.items;}catch(e){}}
+    });
+    return sheetsRead("Monthly","A2:I500");
+  }).then(function(rows){
+    var hist=[];
+    rows.forEach(function(r){
+      if(!r[0]) return;
+      var rec={month:String(r[0]).trim(),investedSAR:parseFloat(r[1])||0,investedUSD:parseFloat(r[2])||0,
+        surplusSAR:parseFloat(r[3])||0,fixedTotal:parseFloat(r[4])||0,totalOut:parseFloat(r[5])||0,rollMode:String(r[6]||"ibkr")};
+      try{rec.cats=JSON.parse(r[7]||"{}");}catch(e){rec.cats={};}
+      try{rec.caps=JSON.parse(r[8]||"{}");}catch(e){rec.caps={};}
+      hist.push(rec);
+    });
+    if(hist.length) S.monthHistory=hist;
+    return sheetsRead("Performance","A2:C500");
+  }).then(function(rows){
+    var perf=[];
+    rows.forEach(function(r){if(r[0]&&String(r[1])!=="deposit")perf.push({month:String(r[0]).trim(),ibkr:parseFloat(r[1])||0,sp:parseFloat(r[2])||0});});
+    if(perf.length) S.perfHistory=perf;
+    return sheetsRead("Family","A2:E3000").catch(function(){return [];});
+  }).then(function(rows){
+    var log=[];
+    (rows||[]).forEach(function(r,i){
+      if(!r[0]||String(r[0]).trim()==="Date") return;
+      var amt=parseFloat(r[3]); if(!amt||amt<=0) return;
+      log.push({id:i+1,date:String(r[0]).trim(),month:parseMonth(r[1]||r[0]),item:String(r[2]||"Other").trim(),amount:amt});
+    });
+    if(log.length) S.family.log=log;
+    return pullPositionsData().catch(function(){return null;});
+  }).then(function(){
+    saveState();render();
+    status.textContent="Reconciled at "+new Date().toLocaleTimeString();
+    btn.textContent="Reconcile from Sheets";btn.disabled=false;
+    toast("Reconciled from Sheets");
+  }).catch(function(e){
+    status.textContent="Reconcile failed: "+(e.message||e);
+    btn.textContent="Reconcile from Sheets";btn.disabled=false;
+    toast("Reconcile failed",true);
+  });
+}
+
+// Sheet "Positions" columns: Ticker | Name | Tier | Qty | AvgPrice | Target | Status | Note | DivYield
+function pullPositionsData(){
+  return sheetsRead("Positions","A2:I300").then(function(rows){
+    var cur=getPositions();
+    var priceByT={};
+    cur.forEach(function(p){priceByT[p.t]=p.price;});
+    var out=[];
+    rows.forEach(function(r){
+      if(!r[0]||String(r[0]).trim()==="Ticker") return;
+      var t=String(r[0]).trim().toUpperCase();
+      var tier=String(r[2]||"sec").trim().toLowerCase();
+      if(!TIERS.some(function(x){return x.k===tier;})) tier="sec";
+      var status=String(r[6]||"intact").trim().toLowerCase();
+      if(!STATUS_META[status]) status="intact";
+      out.push({
+        t:t, name:String(r[1]||t).trim(), tier:tier,
+        qty:parseFloat(r[3])||0, avg:parseFloat(r[4])||0,
+        price:priceByT[t]||0,
+        target:parseFloat(r[5])||0, status:status,
+        note:String(r[7]||"").trim(), dy:parseFloat(r[8])||0
+      });
+    });
+    if(!out.length) throw new Error("Positions sheet is empty");
+    S.positions=out;
+    saveState();
+    return out.length;
+  });
+}
+function pullPositions(){
+  var btn=document.getElementById("pull-pos-btn");
+  btn.textContent="Pulling...";btn.disabled=true;
+  pullPositionsData().then(function(n){
+    render();
+    toast("Holdings updated: "+n+" names");
+    btn.textContent="⇊ Pull holdings from Sheets";btn.disabled=false;
+  }).catch(function(e){
+    toast("Pull failed: "+(e.message||e),true);
+    btn.textContent="⇊ Pull holdings from Sheets";btn.disabled=false;
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// LIVE PRICES — Finnhub, chunked for the free-tier rate limit.
+// Auto-refreshes on open when data is older than 6 hours.
+// ════════════════════════════════════════════════════════════════
+var refreshing=false;
+function refreshPrices(silent){
+  if(refreshing) return;
+  // Cooldown: protect the free-tier key from repeated taps
+  if(!silent&&S.lastManualRefresh&&Date.now()-S.lastManualRefresh<30000){
+    toast("Just refreshed — give it 30 seconds");
+    return;
+  }
+  refreshing=true;
+  if(!silent){S.lastManualRefresh=Date.now();saveState();}
+  var btn=document.getElementById("refresh-btn");
+  if(btn&&!silent){btn.textContent="Refreshing...";btn.disabled=true;}
+  var pos=getPositions();
+  var updated=0, rateLimited=false, authFail=false, failed=[];
+
+  function fetchQuote(p){
+    return fetch("https://finnhub.io/api/v1/quote?symbol="+encodeURIComponent(p.t)+"&token="+FINNHUB_KEY)
+      .then(function(r){
+        if(r.status===429){rateLimited=true;return null;}
+        if(r.status===401||r.status===403){authFail=true;return null;}
+        return r.json();
+      })
+      .then(function(d){
+        if(d&&d.c&&d.c>0){p.price=Math.round(d.c*100)/100;updated++;}
+        else if(!rateLimited&&!authFail) failed.push(p);
+      })
+      .catch(function(){failed.push(p);});
+  }
+
+  function runQueue(list,done){
+    var chunks=[];
+    for(var i=0;i<list.length;i+=8) chunks.push(list.slice(i,i+8));
+    function step(idx){
+      if(idx>=chunks.length||rateLimited||authFail){done();return;}
+      Promise.all(chunks[idx].map(fetchQuote)).then(function(){
+        setTimeout(function(){step(idx+1);},1200);
+      });
+    }
+    step(0);
+  }
+
+  function finish(){
+    if(updated>0) S.lastRefresh=Date.now();
+    S.positions=pos;
+    saveState();render();
+    if(!silent){
+      if(authFail) toast("Finnhub rejected the API key — it needs replacing",true);
+      else if(rateLimited) toast("Finnhub rate limit — updated "+updated+" of "+pos.length+", retry in a minute",updated===0);
+      else if(failed.length) toast("Prices updated: "+updated+" of "+pos.length+" ("+failed.length+" unavailable)",updated===0);
+      else toast("Prices updated: "+updated+" names");
+    }
+    if(btn){btn.textContent="↻ Refresh live prices";btn.disabled=false;}
+    refreshing=false;
+  }
+
+  runQueue(pos,function(){
+    // One retry pass for stragglers, after a short breather
+    if(failed.length&&!rateLimited&&!authFail){
+      var retry=failed.slice(); failed=[];
+      setTimeout(function(){ runQueue(retry,finish); },2500);
+    } else finish();
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// MAIN RENDER
+// ════════════════════════════════════════════════════════════════
+function render(){
+  var nm=nowM(), td=toDay(), mt=mType(nm), pc=pSAR(mt);
+  var famSAR=familyPlannedUSD()/SAR_USD;
+  var ft=fixedBase()+EGP_AXA/S.egpRate+pc+famSAR;
+  var sp=getSpent(nm);
+  var tv=0; for(var k in sp) tv+=sp[k];
+  var to=ft+tv, inv=SALARY-to;
+  renderHeader(nm,mt,pc,tv,inv);
+  renderSalaryReminder();
+  renderCapAlerts(sp);
+  renderToday(td,nm);
+  renderMonth(sp,ft,to,inv,nm,mt,pc);
+  renderHistory();
+  renderPortfolio();
+  drawFire();
+  renderFamily();
+  renderSystem();
+}
+
+function renderHeader(nm,mt,pc,tv,inv){
+  document.getElementById("h-date").textContent=new Date().toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+  var nlv=liveNLV();
+  document.getElementById("h-nlv").textContent=fU(nlv);
+  document.getElementById("h-sub").textContent="cash "+fU(S.cashUSD)+" · "+getPositions().filter(function(p){return p.qty>0;}).length+" positions";
+  // Alert row: month badge + installment + salary
+  var alerts=[];
+  if(mt==="light") alerts.push('<span class="badge" style="background:#34C9A322;color:var(--teal);">Light month</span>');
+  else alerts.push('<span class="badge" style="background:var(--brass-soft);color:var(--brass);">Property '+mt+' month · SAR '+fS(Math.round(pc))+'</span>');
+  var d=new Date().getDate();
+  if(d===25) alerts.push('<span class="badge" style="background:#34C9A322;color:var(--teal);">Salary day</span>');
+  else if(d===24) alerts.push('<span class="badge" style="background:var(--s2);color:var(--mut);">Salary tomorrow</span>');
+  alerts.push('<span class="badge" style="background:var(--s2);color:var(--mut);">→ IBKR SAR '+fS(Math.max(0,Math.round(inv)))+'</span>');
+  document.getElementById("h-alert-row").innerHTML=alerts.join("");
+  // FIRE gauge (the signature)
+  var f=S.fire;
+  var fc=calcFire(f.spend,f.swr,f.ret,f.contrib,f.rental,f.divEnabled?annualDividends():0,nlv);
+  var pct=Math.max(0.5,Math.min(100,fc.pct));
+  document.getElementById("gauge-fill").style.width=pct+"%";
+  document.getElementById("gauge-tick").style.left="calc("+pct+"% - 1px)";
+  document.getElementById("gauge-lbl").textContent=fc.pct.toFixed(1)+"% → "+fK(fc.fn)+" · age "+fc.age;
+}
+
+function renderSalaryReminder(){
+  var el=document.getElementById("salary-reminder");
+  var d=new Date().getDate();
+  if(d===25){el.innerHTML='<div class="card" style="border-color:#D4A84B55;background:var(--brass-soft);display:flex;gap:10px;align-items:center;padding:12px 14px;"><div><div style="font-size:12px;font-weight:700;color:var(--brass);">Salary lands today</div><div style="font-size:10px;color:var(--mut);">SAR 140,000. Deploy the IBKR amount tomorrow.</div></div></div>';}
+  else if(d>20&&d<25){el.innerHTML='<div style="font-family:var(--font-mono);font-size:9.5px;color:var(--dim);margin-bottom:10px;padding:0 2px;">Salary in '+(25-d)+' days · 25th of every month</div>';}
+  else el.innerHTML="";
+}
+
+function renderCapAlerts(sp){
+  var el=document.getElementById("cap-alerts");
+  var out=[];
+  CATS.forEach(function(c){
+    var s=sp[c.k]||0, cap=S.caps[c.k]||0;
+    if(cap<=0) return;
+    var pct=s/cap;
+    if(pct>=1) out.push({l:c.l,color:"#E25B5B",pct:Math.round(pct*100),s:s,cap:cap});
+    else if(pct>=0.8) out.push({l:c.l,color:"#E8A838",pct:Math.round(pct*100),s:s,cap:cap});
+  });
+  el.innerHTML=out.map(function(a){
+    return '<div style="background:'+a.color+'14;border:1px solid '+a.color+'44;border-radius:11px;padding:9px 13px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;color:'+a.color+';font-weight:600;">'+esc(a.l)+' near cap</span><span class="mono" style="font-size:10px;color:'+a.color+';">'+a.pct+'% · '+fS(a.s)+'/'+fS(a.cap)+'</span></div>';
+  }).join("");
+}
+
+// ════════════════════════════════════════════════════════════════
+// TODAY
+// ════════════════════════════════════════════════════════════════
+function txnRow(t,small){
+  var cat=CATS.find(function(c){return c.k===t.cat;})||{l:t.cat,c:"#888"};
+  return '<div style="display:flex;align-items:center;gap:10px;padding:'+(small?'7px':'10px')+' 0;border-bottom:1px solid var(--bdr);">'
+    +'<div style="width:'+(small?'30px':'38px')+';height:'+(small?'30px':'38px')+';border-radius:10px;background:'+cat.c+'22;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:'+cat.c+';flex-shrink:0;font-family:var(--font-mono);">'+esc(cat.l.slice(0,2).toUpperCase())+'</div>'
+    +'<div style="flex:1;min-width:0;"><div style="font-size:'+(small?'11px':'12px')+';font-weight:600;">'+esc(cat.l)+'</div>'
+    +(t.note?'<div style="font-size:10px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(t.note)+'</div>':'')
+    +(small?'<div style="font-size:9px;color:var(--dim);font-family:var(--font-mono);">'+esc(t.date)+'</div>':'')+'</div>'
+    +'<span class="mono" style="font-size:'+(small?'11px':'13px')+';font-weight:600;color:'+cat.c+';">'+fS(t.amount)+'</span>'
+    +'<button onclick="delTxn('+t.id+')" aria-label="Delete" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:4px;line-height:1;">×</button></div>';
+}
+function renderToday(td,nm){
+  var tTxns=S.transactions.filter(function(t){return String(t.date).trim()===td;}).reverse();
+  var earlier=S.transactions.filter(function(t){return String(t.month).trim()===nm&&String(t.date).trim()!==td;}).reverse().slice(0,20);
+  var tl=document.getElementById("today-list"), tt=document.getElementById("today-tot");
+  if(!tTxns.length){ tl.innerHTML='<div style="text-align:center;color:var(--dim);padding:26px 0 18px;font-size:11px;font-family:var(--font-mono);">Nothing logged yet today</div>'; tt.textContent=""; }
+  else{
+    tt.textContent="SAR "+fS(tTxns.reduce(function(a,t){return a+t.amount;},0));
+    tl.innerHTML=tTxns.map(function(t){return txnRow(t,false);}).join("");
+  }
+  var es=document.getElementById("earlier-sec");
+  if(!earlier.length){es.style.display="none";return;}
+  es.style.display="block";
+  document.getElementById("earlier-list").innerHTML=earlier.map(function(t){return txnRow(t,true);}).join("");
+}
+
+// ════════════════════════════════════════════════════════════════
+// MONTH + HISTORY
+// ════════════════════════════════════════════════════════════════
+function renderMonth(sp,ft,to,inv,nm,mt,pc){
+  document.getElementById("caps-title").textContent="Caps — "+mLabel(nm);
+  document.getElementById("cats-list").innerHTML=CATS.map(function(cat){
+    var cap=S.caps[cat.k]||0, s=sp[cat.k]||0;
+    var pct=cap>0?Math.min(100,(s/cap)*100):0;
+    var bc=s>cap?"#E25B5B":pct>=80?"#E8A838":cat.c;
+    var right=S.editCaps
+      ?'<input type="number" value="'+cap+'" data-cat="'+cat.k+'" class="cap-edit" style="width:84px;background:var(--s2);border:1px solid var(--brass);border-radius:8px;padding:5px 8px;color:var(--brass);font-size:12px;font-family:var(--font-mono);outline:none;text-align:right;">'
+      :'<span class="mono" style="font-size:10px;color:'+(s>cap?"#E25B5B":pct>=80?"#E8A838":"var(--dim)")+'">'+fS(cap-s)+' left</span>';
+    return '<div class="card" style="padding:11px 14px;margin-bottom:7px;border-color:'+(pct>=80?bc+'44':'var(--bdr)')+';">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:'+cat.c+'"></div><span style="font-size:12px;font-weight:600;">'+esc(cat.l)+'</span></div>'+right+'</div>'
+      +'<div class="bar-bg"><div class="bar" style="width:'+pct+'%;background:'+bc+';"></div></div>'
+      +'<div style="display:flex;justify-content:space-between;margin-top:4px;"><span class="mono" style="font-size:10px;color:'+bc+';font-weight:600;">SAR '+fS(s)+'</span><span class="mono" style="font-size:10px;color:var(--dim);">/ '+fS(cap)+'</span></div></div>';
+  }).join("");
+  attachCapListeners();
+  // Unclosed past months banner
+  var seen={}; S.transactions.forEach(function(t){var m=parseMonth(t.month);if(m&&m<nm)seen[m]=1;});
+  var unclosed=Object.keys(seen).filter(function(m){return !S.monthHistory.some(function(h){return h.month===m;});}).sort();
+  document.getElementById("unclosed-banner").innerHTML=unclosed.map(function(m){
+    return '<div style="background:#E8A83814;border:1px solid #E8A83844;border-radius:12px;padding:10px 13px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;"><div><div style="font-size:11.5px;font-weight:600;color:var(--amber);">'+mLabel(m)+' was never closed</div><div style="font-size:9.5px;color:var(--dim);">Its logged expenses are not in History yet.</div></div><button class="btn btn-sm" onclick="closeMonth(\''+m+'\')" style="background:var(--amber);color:#0B0C10;flex-shrink:0;">Close '+mLabel(m)+'</button></div>';
+  }).join("");
+  // Fixed items — editable
+  var fx=document.getElementById("fixed-list");
+  var famUSD=familyPlannedUSD(), famSAR2=famUSD/SAR_USD;
+  var fhtml="";
+  if(S.editFixed){
+    fhtml+=(S.fixedItems||[]).map(function(it,i){
+      return '<div style="display:flex;gap:8px;align-items:center;padding:5px 0;">'
+        +'<input type="text" value="'+esc(it.n)+'" data-fi="'+i+'" data-f="n" class="fx-edit" style="flex:1;padding:7px 10px;font-size:11px;">'
+        +'<input type="number" value="'+it.a+'" data-fi="'+i+'" data-f="a" class="fx-edit" style="width:92px;padding:7px 10px;font-family:var(--font-mono);font-size:11px;text-align:right;">'
+        +'<button onclick="delFixedItem('+i+')" aria-label="Remove" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:2px;">×</button></div>';
+    }).join("");
+    fhtml+='<button class="btn btn-ghost btn-sm" onclick="addFixedItem()" style="margin-top:8px;width:100%;">+ Add fixed item</button>';
+    fhtml+='<div style="font-size:9.5px;color:var(--dim);margin-top:8px;line-height:1.5;">AXA, property instalments, and family support are managed elsewhere and added automatically below.</div>';
+  } else {
+    fhtml+=(S.fixedItems||[]).map(function(it){
+      return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);"><span style="font-size:12px;color:var(--mut)">'+esc(it.n)+'</span><span class="mono" style="font-size:12px;color:var(--mut)">SAR '+fS(it.a)+'</span></div>';
+    }).join("");
+  }
+  fhtml+='<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);"><span style="font-size:12px;color:var(--mut)">AXA insurance</span><span class="mono" style="font-size:12px;color:var(--mut)">SAR '+fS(Math.round(EGP_AXA/S.egpRate))+'</span></div>';
+  if(pc>0) fhtml+='<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);"><span style="font-size:12px;color:var(--brass)">Property '+mt+' instalment</span><span class="mono" style="font-size:12px;color:var(--brass)">SAR '+fS(Math.round(pc))+'</span></div>';
+  fhtml+='<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);"><span style="font-size:12px;color:var(--violet)">Family support ($'+fS(famUSD)+')</span><span class="mono" style="font-size:12px;color:var(--violet)">SAR '+fS(Math.round(famSAR2))+'</span></div>';
+  fhtml+='<div style="display:flex;justify-content:space-between;padding-top:10px;"><span style="font-weight:700;font-size:12px;">Total fixed</span><span class="mono" style="font-weight:600;font-size:12px;color:var(--brass);">SAR '+fS(Math.round(ft))+'</span></div>';
+  fx.innerHTML=fhtml;
+  attachFixedListeners();
+  var rc=inv>40000?"var(--teal)":inv>0?"var(--amber)":"var(--red)";
+  document.getElementById("summary-card").innerHTML='<div class="lbl">Month summary</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+[
+    {l:"Salary",v:"140,000 SAR",c:"var(--mut)"},{l:"Total out",v:fS(Math.round(to))+" SAR",c:"var(--mut)"},
+    {l:"Savings rate",v:Math.max(0,Math.round(inv/SALARY*100))+"%",c:rc},{l:"To IBKR",v:fS(Math.max(0,Math.round(inv)))+" SAR",c:rc}
+  ].map(function(r){return '<div class="stat"><div class="k">'+r.l+'</div><div class="v" style="color:'+r.c+';">'+r.v+'</div></div>';}).join("")+'</div>';
+}
+
+function showMonthSeg(seg){
+  S.monthSeg=seg;saveState();
+  document.getElementById("mseg-current").style.display=seg==="current"?"block":"none";
+  document.getElementById("mseg-history").style.display=seg==="history"?"block":"none";
+  document.querySelectorAll("#month-seg button").forEach(function(b){b.classList.toggle("active",b.getAttribute("data-mseg")===seg);});
+  if(seg==="history") renderHistory();
+}
+
+function renderHistory(){
+  var el=document.getElementById("hist-content");
+  var hist=S.monthHistory.slice().sort(function(a,b){return b.month.localeCompare(a.month);});
+  if(!hist.length){el.innerHTML='<div style="text-align:center;padding:50px 20px;color:var(--dim);font-size:11px;">No closed months yet. Close a month to build history.</div>';return;}
+  var catFilter=document.getElementById("hist-cat-filter")?document.getElementById("hist-cat-filter").value:"all";
+  var html='<div style="margin-bottom:10px;"><select id="hist-cat-filter" onchange="renderHistory()"><option value="all">All categories</option>'+CATS.map(function(c){return '<option value="'+c.k+'"'+(catFilter===c.k?" selected":"")+'>'+esc(c.l)+'</option>';}).join("")+'</select></div>';
+  var chartMonths=hist.slice(0,6).reverse();
+  var maxSpend=0;
+  chartMonths.forEach(function(h){
+    var v=catFilter==="all"?Object.values(h.cats||{}).reduce(function(a,b){return a+b;},0):((h.cats||{})[catFilter]||0);
+    if(v>maxSpend) maxSpend=v;
+  });
+  if(maxSpend>0){
+    html+='<div class="card"><div class="lbl">Spending trend</div><div style="display:flex;gap:6px;align-items:flex-end;height:84px;margin-bottom:4px;">';
+    chartMonths.forEach(function(h){
+      var v=catFilter==="all"?Object.values(h.cats||{}).reduce(function(a,b){return a+b;},0):((h.cats||{})[catFilter]||0);
+      var cap=catFilter==="all"?Object.values(S.caps).reduce(function(a,b){return a+b;},0):(S.caps[catFilter]||0);
+      var hPct=Math.max(4,Math.round((v/maxSpend)*66));
+      var bc=cap>0&&v>cap?"#E25B5B":cap>0&&v>cap*0.8?"#E8A838":"#D4A84B";
+      html+='<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;"><div class="mono" style="font-size:8px;color:var(--mut);">'+fS(v)+'</div><div style="width:100%;height:'+hPct+'px;background:'+bc+'33;border-radius:5px 5px 0 0;border-top:2px solid '+bc+';"></div><div style="font-size:8px;color:var(--dim);font-family:var(--font-mono);">'+mLabel(h.month)+'</div></div>';
+    });
+    html+='</div></div>';
+  }
+  html+='<div class="lbl">Closed months</div><div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:8px;">';
+  html+=hist.slice(0,8).map(function(h){
+    var vs=Object.values(h.cats||{}).reduce(function(a,b){return a+b;},0);
+    return '<div style="flex-shrink:0;background:var(--s1);border:1px solid var(--bdr);border-radius:14px;padding:12px 14px;min-width:132px;">'
+      +'<div style="font-size:10px;color:var(--brass);font-weight:600;margin-bottom:8px;font-family:var(--font-mono);">'+mLabel(h.month)+'</div>'
+      +'<div style="font-size:9px;color:var(--dim);">Variable spend</div><div class="mono" style="font-size:13px;font-weight:600;margin-bottom:6px;">SAR '+fS(vs)+'</div>'
+      +'<div style="font-size:9px;color:var(--dim);">Sent to IBKR</div><div class="mono" style="font-size:13px;font-weight:600;color:var(--teal);">'+fU(h.investedUSD)+'</div>'
+      +(h.surplusSAR>0?'<div style="font-size:9px;color:var(--teal);margin-top:4px;">+'+fS(h.surplusSAR)+' surplus</div>':'')+'</div>';
+  }).join("")+'</div>';
+  var totSpend=hist.reduce(function(a,h){return a+Object.values(h.cats||{}).reduce(function(x,y){return x+y;},0);},0);
+  var totIBKR=hist.reduce(function(a,h){return a+h.investedUSD;},0);
+  html+='<div class="card"><div class="lbl">All-time</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
+    +'<div class="stat"><div class="k">Avg monthly spend</div><div class="v">SAR '+fS(hist.length?totSpend/hist.length:0)+'</div></div>'
+    +'<div class="stat"><div class="k">Total to IBKR</div><div class="v" style="color:var(--teal);">'+fU(totIBKR)+'</div></div></div></div>';
+  el.innerHTML=html;
+}
+
+// ════════════════════════════════════════════════════════════════
+// PORTFOLIO
+// ════════════════════════════════════════════════════════════════
+function renderPortfolio(){
+  var pos=getPositions();
+  var nlv=liveNLV();
+  var held=pos.filter(function(p){return p.qty>0;});
+  var totCost=held.reduce(function(s,p){return s+posCost(p);},0);
+  var totVal=held.reduce(function(s,p){return s+posVal(p);},0);
+  var totPnl=totVal-totCost;
+  var f=S.fire;
+  var fc=calcFire(f.spend,f.swr,f.ret,f.contrib,f.rental,f.divEnabled?annualDividends():0,nlv);
+  var flags=held.filter(function(p){return p.status==="weakening"||p.status==="broken"||p.status==="exit";}).length;
+  document.getElementById("port-overview").innerHTML=[
+    {l:"Net worth (IBKR)",v:fK(nlv),s:held.length+" positions · cash "+fU(S.cashUSD),c:"var(--brass)"},
+    {l:"Unrealised P&L",v:(totPnl>=0?"+":"−")+fK(Math.abs(totPnl)),s:(totCost>0?((totPnl/totCost)*100).toFixed(1):"0.0")+"% on cost",c:totPnl>=0?"var(--teal)":"var(--red)"},
+    {l:"FIRE progress",v:fc.pct.toFixed(1)+"%",s:"of "+fK(fc.fn)+" target",c:"var(--brass)"},
+    {l:"Decisions pending",v:flags,s:"weakening / broken / exit",c:flags>0?"var(--amber)":"var(--teal)"}
+  ].map(function(k){
+    return '<div class="card" style="margin:0;padding:13px 14px;"><div class="lbl" style="margin-bottom:5px;">'+k.l+'</div><div class="mono" style="font-size:18px;font-weight:600;color:'+k.c+';">'+k.v+'</div><div style="font-size:9.5px;color:var(--dim);margin-top:3px;">'+k.s+'</div></div>';
+  }).join("");
+  // Tier allocation strip
+  var strip='<div class="card" style="padding:12px 14px;margin-bottom:12px;"><div class="lbl" style="margin-bottom:8px;">Allocation by tier</div><div style="display:flex;height:10px;border-radius:99px;overflow:hidden;background:var(--s3);">';
+  var legend='';
+  TIERS.forEach(function(tr){
+    var v=pos.filter(function(p){return p.tier===tr.k&&p.qty>0;}).reduce(function(s,p){return s+posVal(p);},0);
+    if(v<=0) return;
+    var pc=nlv>0?(v/nlv*100):0;
+    strip+='<div style="width:'+pc+'%;background:'+tr.c+';" title="'+esc(tr.name)+'"></div>';
+    legend+='<span style="display:inline-flex;align-items:center;gap:4px;margin:3px 8px 0 0;font-size:8.5px;color:var(--mut);font-family:var(--font-mono);"><span style="width:7px;height:7px;border-radius:2px;background:'+tr.c+';display:inline-block;"></span>'+esc(tr.name.replace("Core — ",""))+' '+pc.toFixed(0)+'%</span>';
+  });
+  var cashPc=nlv>0?((S.cashUSD||0)/nlv*100):0;
+  if(cashPc>0.05){strip+='<div style="width:'+cashPc+'%;background:#3A4254;"></div>';legend+='<span style="display:inline-flex;align-items:center;gap:4px;margin:3px 8px 0 0;font-size:8.5px;color:var(--mut);font-family:var(--font-mono);"><span style="width:7px;height:7px;border-radius:2px;background:#3A4254;display:inline-block;"></span>Cash '+cashPc.toFixed(1)+'%</span>';}
+  strip+='</div><div style="margin-top:2px;">'+legend+'</div></div>';
+  var stripEl=document.getElementById("tier-strip");
+  if(stripEl) stripEl.innerHTML=strip;
+  var meta=document.getElementById("refresh-meta");
+  meta.textContent=S.lastRefresh?("Prices as of "+new Date(S.lastRefresh).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})):"Prices from last snapshot — tap Refresh for live quotes";
+  renderPositionsSub();
+  renderPlanSub();
+  renderRulesSub();
+}
+
+function posRow(p,nlv){
+  var v=posVal(p), pl=posPnl(p), pp=posPct(p);
+  var tr=tierOf(p.tier), st=STATUS_META[p.status]||STATUS_META.intact;
+  var navPct=nlv>0?(v/nlv*100):0;
+  var over=navPct>=12;
+  return '<div class="pos-row" onclick="openPosModal(\''+esc(p.t)+'\')" style="border-left:3px solid '+tr.c+';">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
+    +'<div style="min-width:0;flex:1;"><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;"><span class="mono" style="font-size:13.5px;font-weight:600;">'+esc(p.t)+'</span>'
+    +'<span class="badge" style="background:'+st.c+'1E;color:'+st.c+';">'+st.l+'</span>'
+    +(over?'<span class="badge" style="background:#E25B5B22;color:var(--red);">'+navPct.toFixed(1)+'% NAV</span>':'')
+    +'</div><div style="font-size:10px;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(p.name)+'</div></div>'
+    +'<div style="text-align:right;flex-shrink:0;"><div class="mono" style="font-size:13px;font-weight:600;">'+(p.price>0?fK(v):"—")+'</div>'
+    +(p.price>0?'<div class="mono" style="font-size:10px;color:'+(pl>=0?"var(--teal)":"var(--red)")+';">'+(pl>=0?"+":"−")+fK(Math.abs(pl))+' · '+pp.toFixed(1)+'%</div>':'<div style="font-size:9px;color:var(--dim);">refresh for price</div>')
+    +'</div></div></div>';
+}
+
+function renderPositionsSub(){
+  var el=document.getElementById("psub-positions");
+  var pos=getPositions(), nlv=liveNLV();
+  var html="";
+  TIERS.forEach(function(tr){
+    var items=pos.filter(function(p){return p.tier===tr.k&&p.qty>0;});
+    if(!items.length) return;
+    items.sort(function(a,b){return posVal(b)-posVal(a);});
+    var sub=items.reduce(function(s,p){return s+posVal(p);},0);
+    html+='<div class="tier-head"><span class="tier-name" style="color:'+tr.c+';">'+tr.name+'</span><span class="mono" style="font-size:10px;color:var(--dim);">'+fK(sub)+' · '+(nlv>0?(sub/nlv*100).toFixed(1):"0")+'%</span></div>';
+    html+=items.map(function(p){return posRow(p,nlv);}).join("");
+  });
+  el.innerHTML=html;
+}
+
+function renderPlanSub(){
+  var el=document.getElementById("psub-plan");
+  var pos=getPositions();
+  var planned=pos.filter(function(p){return p.target>0||p.status==="building";});
+  var totalGap=planned.reduce(function(s,p){return s+Math.max(0,(p.target||0)-posVal(p));},0);
+  var html='<button class="btn btn-ghost" onclick="openPosModal(null)" style="margin-bottom:10px;border-style:dashed;">+ Add name to plan</button>';
+  html+='<div class="card" style="border-color:#D4A84B33;"><div class="lbl">Master plan</div>'
+    +'<div style="font-size:11.5px;color:var(--mut);line-height:1.6;">A multi-year build, not a year-end target. Remaining capital to deploy across all planned names: <span class="mono" style="color:var(--brass);font-weight:600;">'+fK(totalGap)+'</span>. Funded by the $15K monthly contribution — entries via range-aware ladders only.</div></div>';
+  TIERS.forEach(function(tr){
+    var items=planned.filter(function(p){return p.tier===tr.k;});
+    if(!items.length) return;
+    items.sort(function(a,b){return (b.target||0)-(a.target||0);});
+    html+='<div class="tier-head"><span class="tier-name" style="color:'+tr.c+';">'+tr.name+'</span><span style="font-size:9px;color:var(--dim);font-family:var(--font-mono);">'+items.length+' names</span></div>';
+    items.forEach(function(p){
+      var v=posVal(p), tgt=p.target||0;
+      var pct=tgt>0?Math.min(100,(v/tgt)*100):0;
+      var gap=Math.max(0,tgt-v);
+      var st=STATUS_META[p.status]||STATUS_META.intact;
+      html+='<div class="pos-row" onclick="openPosModal(\''+esc(p.t)+'\')" style="border-left:3px solid '+tr.c+';">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><div style="display:flex;gap:6px;align-items:center;"><span class="mono" style="font-size:13px;font-weight:600;">'+esc(p.t)+'</span><span class="badge" style="background:'+st.c+'1E;color:'+st.c+';">'+st.l+'</span></div>'
+        +'<div class="mono" style="font-size:11px;color:var(--mut);">'+(p.qty>0&&p.price>0?fK(v):"$0")+(tgt>0?' / '+fK(tgt):'')+'</div></div>'
+        +(tgt>0?'<div class="bar-bg"><div class="bar" style="width:'+pct+'%;background:'+tr.c+';"></div></div>':'')
+        +'<div style="display:flex;justify-content:space-between;margin-top:5px;gap:8px;">'
+        +'<div style="font-size:10px;color:var(--dim);line-height:1.5;flex:1;">'+esc(p.note||"")+'</div>'
+        +(gap>0?'<span class="mono" style="font-size:10px;color:var(--brass);flex-shrink:0;">'+fK(gap)+' to go</span>':(tgt>0?'<span class="mono" style="font-size:10px;color:var(--teal);flex-shrink:0;">at target</span>':''))
+        +'</div></div>';
+    });
+  });
+  html+='<div class="card" style="margin-top:14px;border-color:#F0834B33;"><div class="lbl" style="color:var(--orange);">Open decisions</div>';
+  pos.filter(function(p){return p.tier==="tran"||p.tier==="exit";}).forEach(function(p){
+    var st=STATUS_META[p.status]||STATUS_META.intact;
+    html+='<div style="padding:9px 0;border-bottom:1px solid var(--bdr);"><div style="display:flex;justify-content:space-between;align-items:center;"><span class="mono" style="font-size:12px;font-weight:600;">'+esc(p.t)+'</span><span class="badge" style="background:'+st.c+'1E;color:'+st.c+';">'+st.l+'</span></div><div style="font-size:10px;color:var(--mut);line-height:1.5;margin-top:3px;">'+esc(p.note||"")+'</div></div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function renderRulesSub(){
+  var el=document.getElementById("psub-rules");
+  var html='<div class="card"><div class="lbl">Operating principles</div>';
+  RULES.forEach(function(r){
+    html+='<div style="padding:9px 0;border-bottom:1px solid var(--bdr);"><div style="font-size:12px;font-weight:600;color:var(--txt);margin-bottom:2px;">'+esc(r[0])+'</div><div style="font-size:10.5px;color:var(--mut);line-height:1.6;">'+esc(r[1])+'</div></div>';
+  });
+  html+='</div><div class="card"><div class="lbl">Tier structure</div>';
+  TIERS.forEach(function(t){
+    html+='<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr);align-items:flex-start;"><div style="width:92px;flex-shrink:0;font-family:var(--font-mono);font-size:10px;font-weight:600;color:'+t.c+';line-height:1.4;">'+t.name+'</div><div style="font-size:10.5px;color:var(--mut);line-height:1.5;">'+esc(t.rule)+'</div></div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+// ════════════════════════════════════════════════════════════════
+// POSITION MODAL
+// ════════════════════════════════════════════════════════════════
+function openPosModal(ticker){
+  var pos=getPositions();
+  var p=ticker?pos.find(function(x){return x.t===ticker;}):null;
+  var isNew=!p;
+  if(isNew) p={t:"",name:"",tier:"div",qty:0,avg:0,price:0,target:0,status:"building",note:"",dy:0};
+  var v=posVal(p), pl=posPnl(p), nlv=liveNLV();
+  var tr=tierOf(p.tier), st=STATUS_META[p.status]||STATUS_META.intact;
+  var html='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">'
+    +'<div><span class="mono" style="font-size:17px;font-weight:600;">'+(isNew?"Add name":esc(p.t))+'</span><div style="font-size:11px;color:var(--dim);">'+(isNew?"New plan entry":esc(p.name))+'</div></div>'
+    +'<button onclick="closePosModal()" aria-label="Close" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:20px;padding:4px;">✕</button></div>';
+  if(!isNew){
+    html+='<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;"><span class="badge" style="background:'+tr.c+'1E;color:'+tr.c+';">'+tr.name+'</span><span class="badge" style="background:'+st.c+'1E;color:'+st.c+';">Thesis: '+st.l+'</span></div>';
+    html+='<div class="stat-grid" style="margin-bottom:14px;">'
+      +'<div class="stat"><div class="k">Value</div><div class="v">'+(p.price>0?fK(v):"—")+'</div></div>'
+      +'<div class="stat"><div class="k">P&L</div><div class="v" style="color:'+(pl>=0?"var(--teal)":"var(--red)")+';">'+(p.price>0?((pl>=0?"+":"−")+fK(Math.abs(pl))):"—")+'</div></div>'
+      +'<div class="stat"><div class="k">% of NAV</div><div class="v">'+(nlv>0?(v/nlv*100).toFixed(1):"0")+'%</div></div>'
+      +'<div class="stat"><div class="k">Price</div><div class="v">'+(p.price>0?"$"+p.price:"—")+'</div></div>'
+      +'<div class="stat"><div class="k">Return</div><div class="v" style="color:'+(pl>=0?"var(--teal)":"var(--red)")+';">'+(posCost(p)>0?posPct(p).toFixed(1)+"%":"—")+'</div></div>'
+      +'<div class="stat"><div class="k">Target</div><div class="v">'+(p.target>0?fK(p.target):"hold")+'</div></div></div>';
+  }
+  var tierOpts=TIERS.map(function(t){return '<option value="'+t.k+'"'+(t.k===p.tier?" selected":"")+'>'+t.name+'</option>';}).join("");
+  var stOpts=Object.keys(STATUS_META).map(function(k){return '<option value="'+k+'"'+(k===p.status?" selected":"")+'>'+STATUS_META[k].l+'</option>';}).join("");
+  html+='<div class="lbl">'+(isNew?"Details":"Edit — saved locally and pushed to Sheets")+'</div>';
+  if(isNew){
+    html+='<div style="display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-bottom:8px;">'
+      +'<div><div class="mfl">Ticker</div><input type="text" id="pm-t" placeholder="TICKER" style="font-family:var(--font-mono);text-transform:uppercase;"></div>'
+      +'<div><div class="mfl">Company name</div><input type="text" id="pm-name" placeholder="Name"></div></div>';
+  }
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">'
+    +'<div><div class="mfl">Quantity</div><input type="number" id="pm-qty" value="'+p.qty+'" style="font-family:var(--font-mono);"></div>'
+    +'<div><div class="mfl">Avg price $</div><input type="number" id="pm-avg" value="'+p.avg+'" style="font-family:var(--font-mono);"></div>'
+    +'<div><div class="mfl">Target $ (0 = hold)</div><input type="number" id="pm-target" value="'+p.target+'" style="font-family:var(--font-mono);"></div>'
+    +'<div><div class="mfl">Div yield %</div><input type="number" id="pm-dy" value="'+(p.dy||0)+'" step="0.1" style="font-family:var(--font-mono);"></div>'
+    +'<div><div class="mfl">Tier</div><select id="pm-tier" style="width:100%;padding:10px 12px;font-size:12px;">'+tierOpts+'</select></div>'
+    +'<div><div class="mfl">Thesis status</div><select id="pm-status" style="width:100%;padding:10px 12px;font-size:12px;">'+stOpts+'</select></div></div>'
+    +'<div style="margin-bottom:12px;"><div class="mfl">Note / decision trigger</div><input type="text" id="pm-note" value="'+esc(p.note||"")+'"></div>'
+    +'<button class="btn btn-brass" onclick="savePosModal(\''+(isNew?"":esc(p.t))+'\')">'+(isNew?"Add to plan":"Save changes")+'</button>';
+  if(!isNew) html+='<button class="btn" onclick="deletePosition(\''+esc(p.t)+'\')" style="background:#E25B5B18;border:1px solid #E25B5B55;color:var(--red);margin-top:8px;">Remove from plan</button>';
+  html+='<div style="font-size:9.5px;color:var(--dim);margin-top:8px;line-height:1.5;">Changes push to the Positions sheet automatically. Sold everything? Set quantity to 0 to keep the name in the plan, or remove it entirely.</div>';
+  document.getElementById("pos-modal-inner").innerHTML=html;
+  document.getElementById("pos-modal").style.display="flex";
+}
+function closePosModal(){document.getElementById("pos-modal").style.display="none";}
+function savePosModal(ticker){
+  var pos=getPositions().slice();
+  var p;
+  if(ticker){ p=pos.find(function(x){return x.t===ticker;}); if(!p) return; }
+  else {
+    var t=(document.getElementById("pm-t").value||"").trim().toUpperCase();
+    if(!t){toast("Ticker is required",true);return;}
+    if(pos.some(function(x){return x.t===t;})){toast(t+" is already in the plan",true);return;}
+    p={t:t,name:(document.getElementById("pm-name").value||t).trim(),price:0};
+    pos.push(p);
+  }
+  p.qty=parseFloat(document.getElementById("pm-qty").value)||0;
+  p.avg=parseFloat(document.getElementById("pm-avg").value)||0;
+  p.target=parseFloat(document.getElementById("pm-target").value)||0;
+  p.dy=parseFloat(document.getElementById("pm-dy").value)||0;
+  p.tier=document.getElementById("pm-tier").value;
+  p.status=document.getElementById("pm-status").value;
+  p.note=document.getElementById("pm-note").value||"";
+  S.positions=pos;saveState();
+  closePosModal();render();
+  pushPositionsToSheets();
+  if(!ticker&&navigator.onLine) refreshPrices(true);
+}
+function deletePosition(ticker){
+  if(!confirm("Remove "+ticker+" from the plan? This also removes it from the Positions sheet.")) return;
+  S.positions=getPositions().filter(function(x){return x.t!==ticker;});
+  saveState();closePosModal();render();
+  pushPositionsToSheets();
+}
+
+// ════════════════════════════════════════════════════════════════
+// FIRE
+// ════════════════════════════════════════════════════════════════
+function drawFire(){
+  var f=S.fire;
+  var divIncome=f.divEnabled?annualDividends():0;
+  var nlv=liveNLV();
+  var fc=calcFire(f.spend,f.swr,f.ret,f.contrib,f.rental,divIncome,nlv);
+  var circ=2*Math.PI*60, dash=(fc.pct/100)*circ;
+  document.getElementById("fire-ring").setAttribute("stroke-dasharray",dash+" "+circ);
+  document.getElementById("fire-pct").textContent=fc.pct.toFixed(1)+"%";
+  document.getElementById("fire-num").textContent=fK(fc.fn)+" FIRE target";
+  document.getElementById("fire-yrs").textContent="Age "+fc.age+" · "+fc.years+" years away · from "+fK(nlv)+" today";
+  document.getElementById("fire-div").textContent=divIncome>0?("Dividends $"+Math.round(divIncome).toLocaleString()+"/yr shave "+fK(divIncome/(f.swr/100))+" off the target"):"";
+  var sliders=document.getElementById("fire-sliders");
+  sliders.innerHTML=[
+    {id:"fire-spend",label:"Annual spend (USD)",min:40000,max:200000,step:1000,val:f.spend,key:"spend"},
+    {id:"fire-contrib",label:"Monthly contribution (USD)",min:1000,max:25000,step:250,val:f.contrib,key:"contrib"},
+    {id:"fire-rental",label:"Rental income (USD/yr)",min:0,max:30000,step:500,val:f.rental,key:"rental"},
+    {id:"fire-swr",label:"Safe withdrawal rate",min:2.5,max:5.5,step:0.25,val:f.swr,key:"swr"},
+    {id:"fire-ret",label:"Annual return assumption",min:4,max:14,step:0.5,val:f.ret,key:"ret"}
+  ].map(function(sl){
+    return '<div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:10px;color:var(--mut);">'+sl.label+'</span><span class="mono" style="font-size:11px;font-weight:600;color:var(--brass);" id="'+sl.id+'-lbl">'+fireFmt(sl.key,sl.val)+'</span></div><input type="range" id="'+sl.id+'" min="'+sl.min+'" max="'+sl.max+'" step="'+sl.step+'" value="'+sl.val+'" oninput="updateFire(\''+sl.key+'\',+this.value,\''+sl.id+'\')"></div>';
+  }).join("")
+  +'<div style="display:flex;align-items:center;gap:10px;padding:11px;background:var(--s2);border-radius:11px;"><input type="checkbox" id="div-toggle" '+(f.divEnabled?"checked":"")+' onchange="updateFireToggle()" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;"><label for="div-toggle" style="font-size:11px;color:var(--mut);cursor:pointer;">Count dividend income (<span class="mono" style="color:var(--teal);">$'+Math.round(annualDividends()).toLocaleString()+'/yr</span>)</label></div>';
+  var baseYrs=parseFloat(fc.years);
+  var tests=[
+    {label:"Contribute $1K/mo more",fn:function(){return calcFire(f.spend,f.swr,f.ret,f.contrib+1000,f.rental,divIncome,nlv).years;}},
+    {label:"Cut annual spend $6K",fn:function(){return calcFire(f.spend-6000,f.swr,f.ret,f.contrib,f.rental,divIncome,nlv).years;}},
+    {label:"Return +1% higher",fn:function(){return calcFire(f.spend,f.swr,f.ret+1,f.contrib,f.rental,divIncome,nlv).years;}},
+    {label:"SWR at 4% instead",fn:function(){return calcFire(f.spend,4,f.ret,f.contrib,f.rental,divIncome,nlv).years;}},
+    {label:"+$10K rental income",fn:function(){return calcFire(f.spend,f.swr,f.ret,f.contrib,f.rental+10000,divIncome,nlv).years;}},
+    {label:"Spouse adds $2K/mo",fn:function(){return calcFire(f.spend,f.swr,f.ret,f.contrib+2000,f.rental,divIncome,nlv).years;}}
+  ];
+  document.getElementById("fire-sensitivity").innerHTML=tests.map(function(t){
+    var d=baseYrs-parseFloat(t.fn());
+    var good=d>0;
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr);"><span style="font-size:11px;color:var(--mut);">'+t.label+'</span><span class="mono" style="font-size:11px;font-weight:600;color:'+(good?"var(--teal)":"var(--amber)")+';">'+(good?"−":"+")+Math.abs(d).toFixed(1)+' yrs</span></div>';
+  }).join("");
+  var depEl=document.getElementById("dep-list");
+  if(S.ibkrHistory.length){
+    var sorted=S.ibkrHistory.slice().sort(function(a,b){return b.month.localeCompare(a.month);}).slice(0,6);
+    var avg=S.ibkrHistory.reduce(function(a,h){return a+h.usd;},0)/S.ibkrHistory.length;
+    depEl.innerHTML=sorted.map(function(h){return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bdr);"><span class="mono" style="font-size:11px;color:var(--mut);">'+mLabel(h.month)+'</span><span class="mono" style="font-size:11px;color:var(--teal);">'+fU(h.usd)+'</span></div>';}).join("")
+      +'<div style="font-size:10px;color:var(--dim);margin-top:6px;">Average <span class="mono" style="color:var(--brass);">'+fU(Math.round(avg))+'/mo</span></div>';
+  } else depEl.innerHTML='<div style="font-size:10px;color:var(--dim);text-align:center;padding:8px 0;">No deposits logged yet.</div>';
+  renderPerfChart();
+}
+function fireFmt(key,v){
+  if(key==="spend") return "$"+Math.round(v/1000)+"K";
+  if(key==="contrib") return "$"+(v/1000).toFixed(v%1000?2:0).replace(/\.00$/,"")+"K/mo";
+  if(key==="rental") return "$"+Math.round(v/1000)+"K/yr";
+  return v+"%";
+}
+function updateFire(key,val,slId){
+  S.fire[key]=val;
+  var lbl=document.getElementById(slId+"-lbl");
+  if(lbl) lbl.textContent=fireFmt(key,val);
+  saveState();
+  // Recompute displays without rebuilding the slider being dragged
+  var f=S.fire, divIncome=f.divEnabled?annualDividends():0, nlv=liveNLV();
+  var fc=calcFire(f.spend,f.swr,f.ret,f.contrib,f.rental,divIncome,nlv);
+  var circ=2*Math.PI*60;
+  document.getElementById("fire-ring").setAttribute("stroke-dasharray",((fc.pct/100)*circ)+" "+circ);
+  document.getElementById("fire-pct").textContent=fc.pct.toFixed(1)+"%";
+  document.getElementById("fire-num").textContent=fK(fc.fn)+" FIRE target";
+  document.getElementById("fire-yrs").textContent="Age "+fc.age+" · "+fc.years+" years away · from "+fK(nlv)+" today";
+  var pct=Math.max(0.5,Math.min(100,fc.pct));
+  document.getElementById("gauge-fill").style.width=pct+"%";
+  document.getElementById("gauge-tick").style.left="calc("+pct+"% - 1px)";
+  document.getElementById("gauge-lbl").textContent=fc.pct.toFixed(1)+"% → "+fK(fc.fn)+" · age "+fc.age;
+}
+function updateFireToggle(){
+  S.fire.divEnabled=document.getElementById("div-toggle").checked;
+  saveState();render();
+}
+function renderPerfChart(){
+  var el=document.getElementById("perf-chart");
+  if(!S.perfHistory||!S.perfHistory.length){el.innerHTML='<div style="font-size:10px;color:var(--dim);text-align:center;padding:16px;">No performance data yet.</div>';return;}
+  var data=S.perfHistory.slice().sort(function(a,b){return a.month.localeCompare(b.month);}).slice(-12);
+  var maxAbs=0.001;
+  data.forEach(function(d){maxAbs=Math.max(maxAbs,Math.abs(d.ibkr),Math.abs(d.sp));});
+  var html='<div style="display:flex;gap:4px;align-items:flex-end;height:88px;margin-bottom:4px;">';
+  data.forEach(function(d){
+    var iH=Math.max(2,Math.round((Math.abs(d.ibkr)/maxAbs)*42));
+    var sH=Math.max(2,Math.round((Math.abs(d.sp)/maxAbs)*42));
+    html+='<div style="flex:1;display:flex;gap:1px;align-items:flex-end;justify-content:center;"><div style="width:100%;height:'+iH+'px;background:'+(d.ibkr>=0?"var(--teal)":"var(--red)")+';border-radius:2px 2px 0 0;"></div><div style="width:60%;height:'+sH+'px;background:'+(d.sp>=0?"#5B9BE255":"#E25B5B55")+';border-radius:2px 2px 0 0;"></div></div>';
+  });
+  html+='</div><div style="display:flex;gap:4px;margin-bottom:8px;">';
+  data.forEach(function(d){html+='<div style="flex:1;text-align:center;font-size:7px;color:var(--dim);font-family:var(--font-mono);">'+mLabel(d.month)+'</div>';});
+  html+='</div><div style="display:flex;gap:12px;font-size:9px;font-family:var(--font-mono);"><span style="color:var(--teal);">■ IBKR</span><span style="color:var(--blue);">■ S&P 500</span></div>';
+  el.innerHTML=html;
+}
+
+// ════════════════════════════════════════════════════════════════
+// FAMILY — one integrated page
+// ════════════════════════════════════════════════════════════════
+function renderFamily(){
+  var el=document.getElementById("family-content");
+  var fam=S.family||{schd:{val:0,contrib:0},bnd:{val:0,contrib:0},items:[],log:[]};
+  var sp=S.spouse||{income:0,fixed:0,variable:0,ibkr:0,contrib:0,note:""};
+  var f=S.fire, divI=f.divEnabled?annualDividends():0, nlv=liveNLV();
+  var nm=nowM();
+  var plannedUSD=familyPlannedUSD(), loggedUSD=familyLoggedUSD(nm);
+  var html="";
+  // ── Monthly support plan (editable) ──
+  html+='<div class="card" style="border-left:3px solid var(--violet);">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><div style="font-size:13px;font-weight:600;">Monthly support plan</div><button class="btn btn-ghost btn-sm" onclick="toggleFamEdit()">'+(S.editFam?"Done":"Edit plan")+'</button></div>'
+    +'<div style="font-size:10px;color:var(--dim);margin-bottom:12px;">Deducted from salary before the IBKR amount · USD</div>';
+  var planRows=[
+    {n:"SCHD contribution",a:fam.schd.contrib,k:"schd"},
+    {n:"BND contribution",a:fam.bnd.contrib,k:"bnd"}
+  ];
+  if(S.editFam){
+    planRows.forEach(function(r){
+      html+='<div style="display:flex;gap:8px;align-items:center;padding:5px 0;"><span style="flex:1;font-size:11px;color:var(--mut);">'+esc(r.n)+'</span><input type="number" value="'+r.a+'" data-fk="'+r.k+'" class="fam-contrib" style="width:92px;padding:7px 10px;font-family:var(--font-mono);font-size:11px;text-align:right;"></div>';
+    });
+    (fam.items||[]).forEach(function(it,i){
+      html+='<div style="display:flex;gap:8px;align-items:center;padding:5px 0;">'
+        +'<input type="text" value="'+esc(it.n)+'" data-fmi="'+i+'" data-f="n" class="fam-edit" style="flex:1;padding:7px 10px;font-size:11px;">'
+        +'<input type="number" value="'+it.a+'" data-fmi="'+i+'" data-f="a" class="fam-edit" style="width:92px;padding:7px 10px;font-family:var(--font-mono);font-size:11px;text-align:right;">'
+        +'<button onclick="delFamItem('+i+')" aria-label="Remove" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:2px;">×</button></div>';
+    });
+    html+='<button class="btn btn-ghost btn-sm" onclick="addFamItem()" style="margin-top:8px;width:100%;">+ Add support item</button>';
+  } else {
+    planRows.concat(fam.items||[]).forEach(function(r){
+      html+='<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);"><span style="font-size:12px;color:var(--mut);">'+esc(r.n)+'</span><span class="mono" style="font-size:12px;color:var(--mut);">$'+fS(r.a)+'</span></div>';
+    });
+  }
+  html+='<div style="display:flex;justify-content:space-between;padding-top:10px;"><span style="font-weight:700;font-size:12px;">Total plan</span><span class="mono" style="font-weight:600;font-size:13px;color:var(--violet);">$'+fS(plannedUSD)+'/mo · SAR '+fS(Math.round(plannedUSD/SAR_USD))+'</span></div>';
+  html+='</div>';
+  // ── Family portfolio (SCHD/BND) ──
+  html+='<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:4px;">Parents &amp; sisters portfolio</div><div style="font-size:10px;color:var(--dim);margin-bottom:12px;">Held values · update after each buy</div>';
+  [["SCHD","schd"],["BND","bnd"]].forEach(function(r){
+    html+='<div style="display:flex;align-items:center;gap:10px;padding:5px 0;"><span class="mono" style="width:52px;font-size:12px;font-weight:600;">'+r[0]+'</span><span style="flex:1;font-size:10px;color:var(--dim);">$'+fS(fam[r[1]].contrib)+'/mo planned</span><input type="number" value="'+fam[r[1]].val+'" data-fk="'+r[1]+'" class="fam-val" style="width:110px;padding:7px 10px;font-family:var(--font-mono);font-size:11px;text-align:right;"></div>';
+  });
+  html+='<div style="display:flex;justify-content:space-between;padding-top:10px;"><span style="font-weight:700;font-size:12px;">Portfolio total</span><span class="mono" style="font-weight:600;font-size:13px;color:var(--teal);">$'+fS((fam.schd.val||0)+(fam.bnd.val||0))+'</span></div></div>';
+  // ── Log support sent ──
+  var monthLog=(fam.log||[]).filter(function(l){return parseMonth(l.month)===nm;}).slice().reverse();
+  var allItems=["SCHD contribution","BND contribution"].concat((fam.items||[]).map(function(i){return i.n;})).concat(["Other"]);
+  var pctSent=plannedUSD>0?Math.min(100,(loggedUSD/plannedUSD)*100):0;
+  html+='<div class="card"><div class="lbl">Log support sent</div>'
+    +'<div style="display:flex;gap:8px;margin-bottom:10px;"><select id="fam-log-item" style="flex:1.4;">'+allItems.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>';}).join("")+'</select>'
+    +'<input type="number" id="fam-log-amt" inputmode="decimal" placeholder="USD" style="flex:1;font-family:var(--font-mono);">'
+    +'<button onclick="logFam()" class="btn btn-brass btn-sm">Log</button></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px;"><span style="color:var(--dim);">Sent this month</span><span class="mono" style="color:'+(loggedUSD>=plannedUSD?"var(--teal)":"var(--mut)")+';">$'+fS(loggedUSD)+' / $'+fS(plannedUSD)+'</span></div>'
+    +'<div class="bar-bg"><div class="bar" style="width:'+pctSent+'%;background:var(--violet);"></div></div>';
+  if(monthLog.length){
+    html+='<div style="margin-top:10px;">'+monthLog.map(function(l){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bdr);"><div style="flex:1;min-width:0;"><div style="font-size:11px;">'+esc(l.item)+'</div><div style="font-size:9px;color:var(--dim);font-family:var(--font-mono);">'+esc(l.date)+'</div></div><span class="mono" style="font-size:11px;color:var(--violet);">$'+fS(l.amount)+'</span><button onclick="delFamLog('+l.id+')" aria-label="Delete" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:15px;">×</button></div>';
+    }).join("")+'</div>';
+  }
+  html+='</div>';
+  // ── Wedding ──
+  html+='<div class="card" style="border-left:3px solid var(--brass);"><div style="font-size:13px;font-weight:600;margin-bottom:10px;">Wedding — late 2026</div>';
+  [["Budget principle","Funded from salary — zero portfolio impact"],["DCA through the wedding","Continues unchanged"],["After","Combined income raises monthly contributions"]].forEach(function(r){
+    html+='<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--bdr);"><span style="font-size:11px;color:var(--dim);flex-shrink:0;">'+r[0]+'</span><span style="font-size:11px;color:var(--mut);text-align:right;">'+r[1]+'</span></div>';
+  });
+  html+='</div>';
+  // ── Spouse ──
+  html+='<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:4px;">Spouse finances</div><div style="font-size:10px;color:var(--dim);margin-bottom:12px;">Manual input · USD</div>';
+  [["Monthly income","sp-income",sp.income],["Fixed costs","sp-fixed",sp.fixed],["Variable spending","sp-variable",sp.variable],["IBKR portfolio value","sp-ibkr",sp.ibkr],["Monthly IBKR contribution","sp-contrib",sp.contrib]].forEach(function(r){
+    html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="flex:1;font-size:11px;color:var(--mut);">'+r[0]+'</div><input type="number" id="'+r[1]+'" value="'+r[2]+'" onchange="saveSpouse()" style="width:130px;font-family:var(--font-mono);text-align:right;"></div>';
+  });
+  html+='<div style="margin:10px 0;"><input type="text" id="sp-note" value="'+esc(sp.note)+'" placeholder="Notes" onchange="saveSpouse()"></div>';
+  var avail=sp.income-sp.fixed-sp.variable;
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
+    +'<div class="stat"><div class="k">Available to invest</div><div class="v" style="color:'+(avail>=0?"var(--teal)":"var(--red)")+';">$'+fS(Math.max(0,avail))+'</div></div>'
+    +'<div class="stat"><div class="k">Her IBKR</div><div class="v" style="color:var(--violet);">$'+fS(sp.ibkr)+'</div></div></div>';
+  if(sp.contrib>0){
+    var solo=calcFire(f.spend,f.swr,f.ret,f.contrib,f.rental,divI,nlv);
+    var joint=calcFire(f.spend,f.swr,f.ret,f.contrib+sp.contrib,f.rental,divI,nlv);
+    var delta=(parseFloat(solo.years)-parseFloat(joint.years)).toFixed(1);
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">'
+      +'<div class="stat"><div class="k">Solo FIRE age</div><div class="v">'+solo.age+'</div></div>'
+      +'<div class="stat"><div class="k">Joint FIRE age</div><div class="v" style="color:var(--teal);">'+joint.age+'</div></div></div>'
+      +'<div style="font-size:11px;color:var(--teal);font-weight:600;text-align:center;margin-top:8px;">Her contribution brings FIRE '+delta+' years closer</div>';
+  }
+  html+='</div>';
+  // ── Properties ──
+  html+='<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:10px;">Properties</div>';
+  [["Property 2 — Solana New Zayed","Primary home from Nov 2027 · paid off by 2031","$0 housing cost"],["Property 3 — North Coast","Summer home + Jul–Aug rental","$8–10K/yr rental"],["Property 1 — Garden Hills","Sell and redeploy ~$75K to IBKR","Dead capital"]].forEach(function(p){
+    html+='<div style="padding:9px 0;border-bottom:1px solid var(--bdr);"><div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-size:11px;font-weight:500;">'+p[0]+'</span><span class="mono" style="font-size:10.5px;color:var(--teal);flex-shrink:0;">'+p[2]+'</span></div><div style="font-size:10px;color:var(--dim);margin-top:2px;">'+p[1]+'</div></div>';
+  });
+  html+='</div>';
+  // ── Estate ──
+  html+='<div class="card" style="border-left:3px solid var(--red);"><div style="font-size:13px;font-weight:600;margin-bottom:10px;">Estate &amp; legal checklist</div>';
+  [["IBKR beneficiary designation","Primary + contingent — do this first","#E25B5B"],["Egyptian will","Designate real-estate beneficiaries with a lawyer","#E8A838"],["Life insurance","Term policy — wife + parents dependent at FIRE","#E8A838"],["Cross-border tax specialist","Before any FIRE relocation decision","#5B9BE2"],["Property title review","All 3 properties titled correctly for inheritance","#5B9BE2"],["Power of attorney","Egypt + KSA for management while abroad","#8A93A6"]].forEach(function(r){
+    html+='<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr);align-items:flex-start;"><div style="width:7px;height:7px;border-radius:50%;background:'+r[2]+';margin-top:5px;flex-shrink:0;"></div><div><div style="font-size:11px;">'+r[0]+'</div><div style="font-size:10px;color:var(--dim);">'+r[1]+'</div></div></div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+  attachFamListeners();
+}
+function attachFamListeners(){
+  document.querySelectorAll(".fam-contrib").forEach(function(inp){
+    inp.addEventListener("change",function(){
+      var k=this.getAttribute("data-fk");
+      S.family[k].contrib=parseFloat(this.value)||0;
+      saveState();render();
+    });
+  });
+  document.querySelectorAll(".fam-val").forEach(function(inp){
+    inp.addEventListener("change",function(){
+      var k=this.getAttribute("data-fk");
+      S.family[k].val=parseFloat(this.value)||0;
+      saveState();render();
+    });
+  });
+  document.querySelectorAll(".fam-edit").forEach(function(inp){
+    inp.addEventListener("change",function(){
+      var i=parseInt(this.getAttribute("data-fmi"),10), f=this.getAttribute("data-f");
+      if(!S.family.items[i]) return;
+      S.family.items[i][f]=f==="a"?(parseFloat(this.value)||0):this.value;
+      saveState();render();
+    });
+  });
+}
+function toggleFamEdit(){S.editFam=!S.editFam;saveState();renderFamily();}
+function addFamItem(){S.family.items.push({n:"New item",a:0});saveState();renderFamily();}
+function delFamItem(i){S.family.items.splice(i,1);saveState();render();}
+function logFam(){
+  var item=document.getElementById("fam-log-item").value;
+  var amt=parseFloat(document.getElementById("fam-log-amt").value);
+  if(!amt||amt<=0){toast("Enter an amount first",true);return;}
+  var td=toDay(), nm=nowM();
+  S.family.log.push({id:Date.now(),date:td,month:nm,item:item,amount:amt});
+  saveState();render();
+  document.getElementById("fam-log-amt").value="";
+  sheetsAppend("Family",[td,nm,item,amt,""]).then(function(){toast("Support logged");}).catch(function(){toast("Logged on this device — Sync when online",true);});
+}
+function delFamLog(id){S.family.log=S.family.log.filter(function(l){return l.id!==id;});saveState();render();}
+
+// ════════════════════════════════════════════════════════════════
+// SYSTEM
+// ════════════════════════════════════════════════════════════════
+function renderSystem(){
+  var egpIn=document.getElementById("egp-in");
+  if(egpIn&&document.activeElement!==egpIn) egpIn.value=S.egpRate;
+  document.getElementById("egp-breakdown").innerHTML=[
+    {l:"Solana instalment A (EGP 432,225)",v:Math.round(EGP_A/S.egpRate)},
+    {l:"Baghush instalment B (EGP 638,934)",v:Math.round(EGP_B/S.egpRate)},
+    {l:"AXA insurance (EGP 25,000/mo)",v:Math.round(EGP_AXA/S.egpRate)},
+    {l:"Apr 2027 maintenance (EGP 1,707,225)",v:Math.round(EGP_M/S.egpRate),hi:1}
+  ].map(function(r){
+    return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);"><span style="font-size:11px;color:'+(r.hi?"var(--brass)":"var(--dim)")+';flex:1;">'+r.l+'</span><span class="mono" style="font-size:11px;color:'+(r.hi?"var(--brass)":"var(--mut)")+'">SAR '+fS(r.v)+'</span></div>';
+  }).join("");
+  var cashIn=document.getElementById("cash-in");
+  if(cashIn&&document.activeElement!==cashIn) cashIn.value=S.cashReserve;
+  var cuIn=document.getElementById("cashusd-in");
+  if(cuIn&&document.activeElement!==cuIn) cuIn.value=S.cashUSD;
+  var maint=EGP_M/S.egpRate, free=Math.max(0,S.cashReserve-maint);
+  var days=Math.ceil((new Date("2027-04-01")-new Date())/86400000);
+  var cd=document.getElementById("countdown");
+  cd.textContent=days;
+  cd.style.color=days<180?"var(--red)":"var(--mut)";
+  document.getElementById("res-alloc").innerHTML=[
+    {label:"Maintenance reserve",amount:Math.round(maint),note:"EGP 1,707,225 reserved",col:"#D4A84B"},
+    {label:"Free to deploy",amount:Math.round(free),note:"IBKR lump sum or emergency",col:"#34C9A3"}
+  ].map(function(item){
+    var pct=S.cashReserve>0?Math.min(100,(item.amount/S.cashReserve)*100):0;
+    return '<div style="padding:9px 0;"><div style="display:flex;justify-content:space-between;align-items:baseline;"><div><div style="font-size:11.5px;font-weight:600;color:'+item.col+';">'+item.label+'</div><div style="font-size:9.5px;color:var(--dim);">'+item.note+'</div></div><span class="mono" style="font-size:13px;font-weight:600;color:'+item.col+';">SAR '+fS(item.amount)+'</span></div><div class="bar-bg"><div class="bar" style="width:'+pct+'%;background:'+item.col+';"></div></div></div>';
+  }).join("");
+  var ok=S.cashReserve>=maint;
+  var rs=document.getElementById("res-status");
+  rs.innerHTML='<div style="font-size:11px;font-weight:600;color:'+(ok?"var(--teal)":"var(--red)")+';">'+(ok?"Fully funded from existing cash":"Insufficient — top up the reserve")+'</div><div style="font-size:10px;color:var(--dim);margin-top:2px;">Need SAR '+fS(Math.round(maint))+' · have SAR '+fS(S.cashReserve)+'</div>';
+  rs.style.cssText='padding:10px 14px;border-radius:11px;background:'+(ok?"#34C9A312":"#E25B5B12")+';border:1px solid '+(ok?"#34C9A340":"#E25B5B40")+';margin-top:8px;';
+}
+
+// ════════════════════════════════════════════════════════════════
+// NAVIGATION & INTERACTIONS
+// ════════════════════════════════════════════════════════════════
+var TAB_LIST=["today","month","portfolio","fire","family","system"];
+function showTab(n){
+  TAB_LIST.forEach(function(t){document.getElementById("tab-"+t).style.display=t===n?"block":"none";});
+  document.querySelectorAll("#nav .nav-btn").forEach(function(b){b.classList.toggle("active",b.getAttribute("data-tab")===n);});
+  window.scrollTo(0,0);
+  if(n==="portfolio") renderPortfolio();
+  if(n==="fire") drawFire();
+  if(n==="family") renderFamily();
+  if(n==="system") renderSystem();
+  if(n==="month"&&S.monthSeg==="history") renderHistory();
+}
+function showPortSub(sub){
+  ["positions","plan","rules"].forEach(function(s){
+    document.getElementById("psub-"+s).style.display=s===sub?"block":"none";
+    document.getElementById("pt-"+s).classList.toggle("active",s===sub);
+  });
+  S.portSubTab=sub;saveState();
+}
+
+var showAdd=false;
+function renderCatGrid(){
+  var grid=document.getElementById("cat-grid");
+  grid.innerHTML=CATS.map(function(c){
+    var a=c.k===S.selCat;
+    return '<button data-cat="'+c.k+'" style="background:'+(a?c.c+'2A':'var(--s2)')+';border:1px solid '+(a?c.c:'var(--bdr)')+';border-radius:10px;padding:11px 4px;cursor:pointer;color:'+(a?c.c:'var(--mut)')+';font-size:10px;text-align:center;font-family:var(--font-body);font-weight:'+(a?700:500)+'">'+esc(c.l.split(" ")[0])+'</button>';
+  }).join("");
+  grid.onclick=function(e){var b=e.target.closest("button");if(b) selCat(b.getAttribute("data-cat"));};
+}
+function toggleAdd(){
+  showAdd=!showAdd;
+  document.getElementById("add-form").style.display=showAdd?"block":"none";
+  document.getElementById("add-btn").textContent=showAdd?"Cancel":"+ Log expense";
+  if(showAdd){renderCatGrid();document.getElementById("new-amt").focus();}
+}
+function selCat(k){S.selCat=k;saveState();renderCatGrid();}
+function addTxn(){
+  var amt=parseFloat(document.getElementById("new-amt").value);
+  if(!amt||isNaN(amt)||amt<=0){toast("Enter an amount first",true);return;}
+  var note=document.getElementById("new-note").value;
+  var td=toDay(), nm=nowM();
+  S.transactions.push({id:Date.now(),date:td,month:nm,cat:S.selCat,amount:amt,note:note});
+  saveState();
+  document.getElementById("new-amt").value="";document.getElementById("new-note").value="";
+  showAdd=false;document.getElementById("add-form").style.display="none";document.getElementById("add-btn").textContent="+ Log expense";
+  render();
+  sheetsAppend("Transactions",[td,nm,S.selCat,amt,note]).then(function(){toast("Expense saved");}).catch(function(){toast("Saved on this device — will need a Sync when online",true);});
+}
+function delTxn(id){S.transactions=S.transactions.filter(function(t){return t.id!==id;});saveState();render();}
+function toggleEdit(){S.editCaps=!S.editCaps;document.getElementById("edit-btn").textContent=S.editCaps?"Done":"Edit caps";render();}
+function updCap(k,v){S.caps[k]=parseFloat(v)||0;saveState();render();}
+function attachCapListeners(){document.querySelectorAll(".cap-edit").forEach(function(inp){inp.addEventListener("change",function(){updCap(this.getAttribute("data-cat"),this.value);});});}
+function toggleFixedEdit(){S.editFixed=!S.editFixed;document.getElementById("fixed-edit-btn").textContent=S.editFixed?"Done":"Edit fixed";saveState();render();}
+function attachFixedListeners(){
+  document.querySelectorAll(".fx-edit").forEach(function(inp){
+    inp.addEventListener("change",function(){
+      var i=parseInt(this.getAttribute("data-fi"),10), f=this.getAttribute("data-f");
+      if(!S.fixedItems[i]) return;
+      S.fixedItems[i][f]=f==="a"?(parseFloat(this.value)||0):this.value;
+      saveState();render();
+    });
+  });
+}
+function addFixedItem(){S.fixedItems.push({n:"New item",a:0});saveState();render();}
+function delFixedItem(i){S.fixedItems.splice(i,1);saveState();render();}
+function setRoll(m){
+  S.rollMode=m;saveState();
+  ["ibkr","carry"].forEach(function(x){
+    var b=document.getElementById("roll-"+x), a=m===x;
+    b.style.background=a?"var(--brass-soft)":"var(--s2)";
+    b.style.borderColor=a?"var(--brass)":"var(--bdr)";
+    b.querySelector("div").style.color=a?"var(--brass)":"var(--mut)";
+  });
+}
+function closeMonth(m){
+  var nm=(typeof m==="string"&&/^\d{4}-\d{2}$/.test(m))?m:nowM();
+  if(!confirm("Close "+mLabel(nm)+" and record it?")) return;
+  var mt=mType(nm), pc=pSAR(mt), famSAR=familyPlannedUSD()/SAR_USD, ft=fixedBase()+EGP_AXA/S.egpRate+pc+famSAR;
+  var sp=getSpent(nm);
+  var tv=0; for(var k in sp) tv+=sp[k];
+  var to=ft+tv, inv=SALARY-to;
+  var ts=0; CATS.forEach(function(c){ts+=Math.max(0,(S.caps[c.k]||0)-(sp[c.k]||0));});
+  var toI=S.rollMode==="ibkr"?Math.max(0,inv)+ts:Math.max(0,inv);
+  var rec={month:nm,cats:Object.assign({},sp),caps:Object.assign({},S.caps),investedSAR:Math.round(toI),investedUSD:Math.round(toI*SAR_USD),surplusSAR:Math.round(ts),fixedTotal:Math.round(ft),totalOut:Math.round(to),rollMode:S.rollMode};
+  S.monthHistory=S.monthHistory.filter(function(h){return h.month!==nm;});
+  S.monthHistory.push(rec);saveState();render();
+  sheetsAppend("Monthly",[rec.month,rec.investedSAR,rec.investedUSD,rec.surplusSAR,rec.fixedTotal,rec.totalOut,rec.rollMode,JSON.stringify(rec.cats),JSON.stringify(rec.caps)]).then(function(){toast("Month closed and recorded");}).catch(function(){toast("Closed on this device — Sync when online",true);});
+}
+function logDep(){
+  var amt=parseFloat(document.getElementById("dep-amt").value);
+  var month=document.getElementById("dep-month").value;
+  if(!amt||!month){toast("Enter month and amount",true);return;}
+  S.ibkrHistory=S.ibkrHistory.filter(function(h){return h.month!==month;});
+  S.ibkrHistory.push({month:month,usd:amt});
+  saveState();drawFire();toast("Deposit logged");
+  document.getElementById("dep-amt").value="";
+  // Persisted to Sheets inside the Settings ibkrHistory key on next Sync (the old build wrote these to the Dividends sheet by mistake)
+  sheetsAppend("Settings",["ibkrHistory",JSON.stringify(S.ibkrHistory)]).catch(function(){});
+}
+function logPerf(){
+  var month=document.getElementById("perf-month").value;
+  var ibkr=parseFloat(document.getElementById("perf-ibkr").value);
+  var sp=parseFloat(document.getElementById("perf-sp").value);
+  if(!month||isNaN(ibkr)||isNaN(sp)){toast("Enter month and both returns",true);return;}
+  S.perfHistory=S.perfHistory.filter(function(h){return h.month!==month;});
+  S.perfHistory.push({month:month,ibkr:ibkr,sp:sp});
+  saveState();renderPerfChart();toast("Performance logged");
+  document.getElementById("perf-ibkr").value="";document.getElementById("perf-sp").value="";
+  sheetsAppend("Performance",[month,ibkr,sp]).catch(function(){});
+}
+function setEGP(v){S.egpRate=parseFloat(v)||14;saveState();render();toast("EGP rate set to "+S.egpRate);}
+function setCash(v){S.cashReserve=parseFloat(v)||0;saveState();render();toast("Cash reserve updated");}
+function setCashUSD(v){S.cashUSD=parseFloat(v)||0;saveState();render();toast("IBKR cash updated");}
+function saveSpouse(){
+  S.spouse={
+    income:parseFloat(document.getElementById("sp-income").value)||0,
+    fixed:parseFloat(document.getElementById("sp-fixed").value)||0,
+    variable:parseFloat(document.getElementById("sp-variable").value)||0,
+    ibkr:parseFloat(document.getElementById("sp-ibkr").value)||0,
+    contrib:parseFloat(document.getElementById("sp-contrib").value)||0,
+    note:document.getElementById("sp-note").value||""
+  };
+  saveState();renderFamily();
+}
+function clearMonth(){
+  if(!confirm("Clear this month's transactions on this device?")) return;
+  var nm=nowM();S.transactions=S.transactions.filter(function(t){return String(t.month).trim()!==nm;});saveState();render();toast("Month cleared");
+}
+function resetAll(){
+  if(!confirm("Reset ALL local data? Sheets history is untouched and can be restored via Reconcile.")) return;
+  localStorage.removeItem(LS_KEY);S=defaultState();render();toast("Local data reset");
+}
+
+// ════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════
+document.getElementById("dep-month").value=nowM();
+document.getElementById("perf-month").value=nowM();
+showPortSub(S.portSubTab||"positions");
+showMonthSeg(S.monthSeg||"current");
+setRoll(S.rollMode||"ibkr");
+render();
+// Auto-refresh prices when data is older than 6 hours
+if(navigator.onLine&&(Date.now()-(S.lastRefresh||0))>6*3600*1000){
+  setTimeout(function(){refreshPrices(true);},800);
+}
+</script>
+</body>
+</html>
