@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ahmad — Discovery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08090D; --s1:#0E1117; --s2:#151A23; --s3:#1B2130; --bdr:#1E2530; --bdr2:#2A3242;
+  --txt:#E8E6DF; --mut:#8A93A6; --dim:#4A5265;
+  --signal:#6FB7E8; --signal-soft:#6FB7E822;
+  --brass:#D4A84B; --teal:#34C9A3; --red:#E25B5B; --amber:#E8A838; --violet:#A78BFA;
+  --font-display:'Space Grotesk',sans-serif; --font-body:'Inter',-apple-system,sans-serif; --font-mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--txt);font-family:var(--font-body);font-size:13px;max-width:480px;margin:0 auto;padding-bottom:30px;}
+.mono{font-family:var(--font-mono);}
+.card{background:var(--s1);border:1px solid var(--bdr);border-radius:16px;padding:14px;margin-bottom:10px;}
+.lbl{font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:8px;}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:11px 20px;border-radius:12px;font-weight:600;font-size:12px;color:#0B0C10;z-index:999;display:none;white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.5);}
+/* Header */
+#hdr{padding:16px 18px 12px;background:linear-gradient(180deg,var(--s1) 0%,var(--bg) 100%);position:sticky;top:0;z-index:50;border-bottom:1px solid var(--bdr);}
+.h-eyebrow{font-family:var(--font-mono);font-size:8.5px;color:var(--signal);letter-spacing:.22em;text-transform:uppercase;margin-bottom:3px;}
+.h-row{display:flex;align-items:center;gap:10px;}
+.h-title{font-family:var(--font-display);font-size:19px;font-weight:700;letter-spacing:-.02em;flex:1;}
+a.back{color:var(--dim);font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-decoration:none;text-transform:uppercase;border:1px solid var(--bdr);border-radius:8px;padding:6px 10px;}
+.scanline{height:2px;margin-top:11px;background:var(--s3);position:relative;overflow:hidden;border-radius:2px;}
+.scanline::after{content:'';position:absolute;top:0;left:-30%;width:30%;height:100%;background:linear-gradient(90deg,transparent,var(--signal),transparent);animation:idle 4s linear infinite;}
+@keyframes idle{to{left:110%;}}
+/* Segments */
+.segs{display:flex;gap:6px;margin:12px 14px 0;}
+.seg{flex:1;background:var(--s2);border:1px solid var(--bdr);border-radius:10px;padding:9px 0;text-align:center;font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);cursor:pointer;}
+.seg.active{color:var(--signal);border-color:var(--signal);background:var(--signal-soft);}
+main{padding:12px 14px 0;}
+/* Stat strip */
+.strip{display:flex;gap:8px;margin-bottom:12px;}
+.stat{flex:1;background:var(--s1);border:1px solid var(--bdr);border-radius:12px;padding:10px 8px;text-align:center;}
+.stat .v{font-family:var(--font-mono);font-size:15px;font-weight:600;}
+.stat .k{font-family:var(--font-mono);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:3px;}
+/* Rows */
+.grp{font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:14px 2px 8px;}
+.row{background:var(--s1);border:1px solid var(--bdr);border-radius:14px;padding:12px 13px;margin-bottom:8px;cursor:pointer;position:relative;}
+.row.flash{animation:flash .9s ease;}
+@keyframes flash{0%{border-color:var(--signal);box-shadow:0 0 22px -8px var(--signal);}100%{border-color:var(--bdr);}}
+.r-top{display:flex;align-items:baseline;gap:9px;}
+.tkr{font-family:var(--font-display);font-size:15px;font-weight:700;}
+.chip{font-family:var(--font-mono);font-size:8px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;padding:2.5px 7px;border-radius:5px;}
+.px{margin-left:auto;font-family:var(--font-mono);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;}
+.r-sub{display:flex;gap:11px;margin-top:6px;font-family:var(--font-mono);font-size:9.5px;color:var(--mut);font-variant-numeric:tabular-nums;flex-wrap:wrap;}
+.up{color:var(--teal);}.dn{color:var(--red);}
+.range{margin-top:9px;height:4px;background:var(--s3);border-radius:99px;position:relative;}
+.range .zone{position:absolute;right:0;top:0;height:100%;width:15%;background:#E25B5B33;border-radius:0 99px 99px 0;}
+.range .dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:9px;height:9px;border-radius:99px;background:var(--signal);border:2px solid var(--bg);}
+.detail{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.row.open .detail{max-height:400px;}
+.d-in{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);}
+.thesis{font-size:11.5px;color:var(--mut);line-height:1.55;}
+.d-meta{font-family:var(--font-mono);font-size:8.5px;color:var(--dim);letter-spacing:.06em;margin-top:8px;line-height:1.7;}
+.acts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.acts button{font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:8px 11px;color:var(--mut);cursor:pointer;min-height:34px;}
+.acts button.warn{color:var(--red);border-color:#E25B5B44;}
+.acts button.armed{background:#E25B5B22;color:var(--red);border-color:var(--red);}
+/* Buttons */
+.btn{border:none;border-radius:12px;padding:13px;cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:600;width:100%;}
+.btn:active{opacity:.7;}
+.btn-signal{background:var(--signal);color:#0B0C10;}
+.btn-ghost{background:var(--s2);border:1px solid var(--bdr);color:var(--mut);}
+textarea{width:100%;background:var(--s2);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:11px;font-family:var(--font-mono);outline:none;min-height:120px;}
+textarea:focus{border-color:var(--signal);}
+.note{font-size:9.5px;color:var(--dim);line-height:1.6;margin-top:8px;}
+.empty{text-align:center;padding:34px 20px;color:var(--dim);font-size:12px;line-height:1.7;}
+.empty b{color:var(--mut);font-weight:600;}
+.miss{font-family:var(--font-mono);font-size:9px;padding:2px 6px;border-radius:5px;}
+.miss.bad{background:#E8A83822;color:var(--amber);}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="hdr">
+  <div class="h-eyebrow">Weekly Discovery Sweep · Satellite sleeve</div>
+  <div class="h-row">
+    <div class="h-title">Discovery</div>
+    <a class="back" href="index.html">← Command</a>
+  </div>
+  <div class="scanline"></div>
+</div>
+<div class="segs">
+  <div class="seg active" id="seg-board" onclick="showSeg('board')">Board</div>
+  <div class="seg" id="seg-ledger" onclick="showSeg('ledger')">Ledger</div>
+  <div class="seg" id="seg-import" onclick="showSeg('import')">Import</div>
+</div>
+<main>
+  <div id="v-board"></div>
+  <div id="v-ledger" style="display:none"></div>
+  <div id="v-import" style="display:none">
+    <div class="card">
+      <div class="lbl">Paste weekly sweep block</div>
+      <textarea id="imp" placeholder='Paste the JSON block from the chat sweep here…'></textarea>
+      <div style="height:10px"></div>
+      <button class="btn btn-signal" onclick="doImport()">Import sweep</button>
+      <div class="note">New tickers are added. Existing tickers keep their original discovery date and price — only status, thesis and reason update. Everything writes to the Discovery tab in your Sheet.</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Sync</div>
+      <button class="btn btn-ghost" onclick="pullSheet(true)">Reload from Sheets</button>
+      <div class="note" id="sync-note">—</div>
+    </div>
+  </div>
+</main>
+<script>
+var SCRIPT_URL="https://script.google.com/macros/s/AKfycbxpO1ieDPSZerdPI275iyWccfyYNzD_GuTciqGnmpjHKBH77iDAANnocQ4Ghyapwr8mtw/exec";
+var FINNHUB_KEY="d8cceupr01qidic7bhigd8cceupr01qidic7bhj0";
+var LS_KEY="ahmad-discovery-v1";
+var SHEET="Discovery";
+var HEADERS=["Ticker","Status","Sweep","DiscDate","DiscPrice","Low52w","High52w","Thesis","Reason","Note","Updated"];
+var STATUSES={
+  BUY:{l:"Buy ladder",c:"var(--teal)",bg:"#34C9A31E",grp:"Active — conviction",ord:1},
+  HELD:{l:"Held",c:"var(--violet)",bg:"#A78BFA1E",grp:"Active — conviction",ord:2},
+  WATCHING:{l:"Watching",c:"var(--amber)",bg:"#E8A8381E",grp:"Watchlist",ord:3},
+  COOLING:{l:"Cooling",c:"var(--signal)",bg:"#6FB7E81E",grp:"Watchlist",ord:4},
+  PASSED:{l:"Passed",c:"var(--dim)",bg:"#4A526522",grp:"Passed",ord:5}
+};
+var S={entries:[],prices:{},lastSync:0,seg:"board",sheetLen:0};
+try{var raw=localStorage.getItem(LS_KEY);if(raw){var p=JSON.parse(raw);if(p&&p.entries)S=Object.assign(S,p);}}catch(e){}
+function saveState(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}}
+function toast(m,bad){var t=document.getElementById("toast");t.textContent=m;t.style.background=bad?"var(--red)":"var(--signal)";t.style.display="block";setTimeout(function(){t.style.display="none";},2400);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function fN(n,d){return (n==null||isNaN(n))?"—":Number(n).toFixed(d==null?2:d);}
+/* ---------- Sheets ---------- */
+function sheetsPost(body){return fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(body)}).then(function(r){return r.json();});}
+function sheetsRead(){return sheetsPost({sheet:SHEET,action:"read",range:"A1:K2000"}).then(function(d){if(d.error)throw new Error(d.error);return d.values||[];});}
+function sheetsWrite(row,rowNum){return sheetsPost({sheet:SHEET,action:"write",row:row,rowNum:rowNum});}
+function pushAll(){
+  var rows=[HEADERS];
+  S.entries.forEach(function(e){rows.push([e.t,e.status,e.sweep,e.disc,e.dp,e.lo,e.hi,e.thesis,e.reason,e.note||"",e.upd||""]);});
+  var blanks=Math.max(0,(S.sheetLen||0)-S.entries.length)+2;
+  for(var i=0;i<blanks;i++)rows.push(["","","","","","","","","","",""]);
+  var chain=Promise.resolve();
+  rows.forEach(function(r,idx){chain=chain.then(function(){return sheetsWrite(r,idx+1);});});
+  return chain.then(function(){S.sheetLen=S.entries.length;S.lastSync=Date.now();saveState();toast("Synced to Sheets");})
+  .catch(function(){toast("Saved locally — Sheets sync failed",true);});
+}
+function pullSheet(manual){
+  return sheetsRead().then(function(vals){
+    if(!vals.length){if(manual)toast("Discovery tab is empty — import a sweep first",true);return;}
+    var out=[];
+    for(var i=1;i<vals.length;i++){
+      var r=vals[i];if(!r[0])continue;
+      out.push({t:String(r[0]).toUpperCase(),status:r[1]||"WATCHING",sweep:r[2]||"",disc:r[3]||"",dp:parseFloat(r[4])||0,lo:parseFloat(r[5])||0,hi:parseFloat(r[6])||0,thesis:r[7]||"",reason:r[8]||"",note:r[9]||"",upd:r[10]||""});
+    }
+    S.entries=out;S.sheetLen=out.length;S.lastSync=Date.now();saveState();render();
+    if(manual)toast("Loaded "+out.length+" entries from Sheets");
+    refreshPrices();
+  }).catch(function(e){if(manual)toast("Sheets read failed — check connection",true);});
+}
+/* ---------- Prices (Finnhub, paced 8-batches) ---------- */
+var refreshing=false;
+function refreshPrices(){
+  if(refreshing)return;refreshing=true;
+  var tickers=S.entries.map(function(e){return e.t;});
+  if(!tickers.length){refreshing=false;return;}
+  var i=0;
+  function batch(){
+    var slice=tickers.slice(i,i+8);
+    if(!slice.length){refreshing=false;saveState();render();return;}
+    Promise.all(slice.map(function(t){
+      return fetch("https://finnhub.io/api/v1/quote?symbol="+encodeURIComponent(t)+"&token="+FINNHUB_KEY)
+        .then(function(r){return r.json();})
+        .then(function(d){if(d&&d.c)S.prices[t]={c:d.c,ts:Date.now()};})
+        .catch(function(){});
+    })).then(function(){i+=8;setTimeout(batch,1100);});
+  }
+  batch();
+}
+/* ---------- Import ---------- */
+function doImport(){
+  var txt=document.getElementById("imp").value.trim();
+  if(!txt){toast("Paste the sweep block first",true);return;}
+  var data;
+  try{data=JSON.parse(txt);}catch(e){toast("That block isn't valid — paste it exactly as given",true);return;}
+  if(!data.entries||!data.entries.length){toast("No entries found in the block",true);return;}
+  var added=0,updated=0;
+  data.entries.forEach(function(n){
+    var t=String(n.t||"").toUpperCase();if(!t)return;
+    var ex=S.entries.find(function(e){return e.t===t;});
+    if(ex){
+      ex.status=n.status||ex.status;ex.thesis=n.thesis||ex.thesis;ex.reason=n.reason||ex.reason;
+      if(n.lo)ex.lo=n.lo;if(n.hi)ex.hi=n.hi;ex.upd=data.date||toDay();updated++;
+    }else{
+      S.entries.push({t:t,status:n.status||"WATCHING",sweep:data.sweep||"",disc:data.date||toDay(),dp:n.price||0,lo:n.lo||0,hi:n.hi||0,thesis:n.thesis||"",reason:n.reason||"",note:"",upd:data.date||toDay()});
+      added++;
+    }
+  });
+  saveState();render();document.getElementById("imp").value="";
+  toast(added+" added · "+updated+" updated");
+  showSeg("board");refreshPrices();pushAll();
+}
+function toDay(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+/* ---------- Status changes ---------- */
+var armed=null;
+var openSet={};
+function toggleRow(el,key){el.classList.toggle('open');openSet[key]=el.classList.contains('open');}
+function setStatus(t,st){
+  var e=S.entries.find(function(x){return x.t===t;});if(!e)return;
+  e.status=st;e.upd=toDay();saveState();render();pushAll();
+}
+function armPass(t,btn){
+  if(armed===t){setStatus(t,"PASSED");armed=null;return;}
+  armed=t;btn.classList.add("armed");btn.textContent="Confirm pass";
+  setTimeout(function(){armed=null;render();},2500);
+}
+/* ---------- Render ---------- */
+function showSeg(s){
+  S.seg=s;saveState();
+  ["board","ledger","import"].forEach(function(k){
+    document.getElementById("v-"+k).style.display=k===s?"block":"none";
+    document.getElementById("seg-"+k).classList.toggle("active",k===s);
+  });
+  window.scrollTo(0,0);
+}
+function pctSince(e){
+  var pr=S.prices[e.t];
+  if(!pr||!e.dp)return null;
+  return (pr.c/e.dp-1)*100;
+}
+function rangePos(e){
+  var pr=S.prices[e.t];var c=pr?pr.c:e.dp;
+  if(!e.hi||e.hi<=e.lo)return null;
+  return Math.max(0,Math.min(100,(c-e.lo)/(e.hi-e.lo)*100));
+}
+function rowHTML(e,inLedger){
+  var pfx=inLedger?'l':'b';
+  var key=pfx+'-'+e.t;
+  var st=STATUSES[e.status]||STATUSES.WATCHING;
+  var pr=S.prices[e.t];
+  var pct=pctSince(e);
+  var rp=rangePos(e);
+  var missTag="";
+  if(inLedger&&e.status==="PASSED"&&pct!==null&&pct>50)missTag='<span class="miss bad">MISSED +'+pct.toFixed(0)+'%</span>';
+  var h='<div class="row'+(openSet[key]?' open':'')+'" id="row-'+key+'" onclick="toggleRow(this,\''+key+'\')">'
+   +'<div class="r-top"><span class="tkr">'+esc(e.t)+'</span>'
+   +'<span class="chip" style="background:'+st.bg+';color:'+st.c+'">'+st.l+'</span>'+missTag
+   +'<span class="px">'+(pr?"$"+fN(pr.c):"—")+'</span></div>'
+   +'<div class="r-sub">'
+   +'<span>disc $'+fN(e.dp)+' · '+esc(e.disc)+'</span>'
+   +(pct!==null?'<span class="'+(pct>=0?"up":"dn")+'">'+(pct>=0?"+":"")+pct.toFixed(1)+'% since</span>':'')
+   +(rp!==null?'<span>range '+rp.toFixed(0)+'%</span>':'')
+   +'</div>';
+  if(rp!==null)h+='<div class="range"><div class="zone"></div><div class="dot" style="left:'+rp+'%"></div></div>';
+  h+='<div class="detail"><div class="d-in">'
+   +'<div class="thesis">'+esc(e.thesis)+'</div>'
+   +'<div class="d-meta">SWEEP '+esc(e.sweep)+' · '+esc(e.reason)+(e.note?'<br>NOTE: '+esc(e.note):'')+(e.upd?'<br>UPDATED '+esc(e.upd):'')+'</div>'
+   +'<div class="acts" onclick="event.stopPropagation()">';
+  ["WATCHING","COOLING","BUY","HELD"].forEach(function(k){
+    if(k!==e.status)h+='<button onclick="setStatus(\''+esc(e.t)+'\',\''+k+'\')">→ '+STATUSES[k].l+'</button>';
+  });
+  if(e.status!=="PASSED")h+='<button class="warn" onclick="armPass(\''+esc(e.t)+'\',this)">Pass</button>';
+  h+='</div></div></div></div>';
+  return h;
+}
+function renderBoard(){
+  var v=document.getElementById("v-board");
+  var act=S.entries.filter(function(e){return e.status!=="PASSED";});
+  if(!act.length){v.innerHTML='<div class="empty"><b>No active candidates.</b><br>Run the weekly sweep in Claude, then paste the block under Import.<br>A week with zero buys is the system working.</div>';return;}
+  var held=act.filter(function(e){return e.status==="BUY"||e.status==="HELD";});
+  var watch=act.filter(function(e){return e.status==="WATCHING"||e.status==="COOLING";});
+  var h='<div class="strip">'
+   +'<div class="stat"><div class="v">'+act.length+'</div><div class="k">Active</div></div>'
+   +'<div class="stat"><div class="v">'+held.length+'</div><div class="k">Conviction</div></div>'
+   +'<div class="stat"><div class="v" style="color:var(--signal)">'+watch.length+'</div><div class="k">Watchlist</div></div>'
+   +'</div>';
+  if(held.length){h+='<div class="grp">Active — conviction</div>'+held.map(function(e){return rowHTML(e,false);}).join("");}
+  if(watch.length){h+='<div class="grp">Watchlist</div>'+watch.map(function(e){return rowHTML(e,false);}).join("");}
+  h+='<div style="height:8px"></div><button class="btn btn-ghost" onclick="refreshPrices();toast(\'Refreshing prices…\')">⟳ Refresh prices</button>';
+  v.innerHTML=h;
+}
+function renderLedger(){
+  var v=document.getElementById("v-ledger");
+  if(!S.entries.length){v.innerHTML='<div class="empty"><b>Ledger is empty.</b><br>Every name reviewed — buys, watches and passes — lands here after your first import.</div>';return;}
+  var passed=S.entries.filter(function(e){return e.status==="PASSED";});
+  var missed=passed.filter(function(e){var p=pctSince(e);return p!==null&&p>50;}).length;
+  var h='<div class="strip">'
+   +'<div class="stat"><div class="v">'+S.entries.length+'</div><div class="k">Reviewed</div></div>'
+   +'<div class="stat"><div class="v">'+(S.entries.length-passed.length)+'</div><div class="k">Gated in</div></div>'
+   +'<div class="stat"><div class="v" style="color:'+(missed?'var(--amber)':'var(--teal)')+'">'+missed+'</div><div class="k">Missed &gt;50%</div></div>'
+   +'</div>';
+  var sorted=S.entries.slice().sort(function(a,b){return (STATUSES[a.status]||{}).ord-(STATUSES[b.status]||{}).ord||a.t.localeCompare(b.t);});
+  h+=sorted.map(function(e){return rowHTML(e,true);}).join("");
+  h+='<div class="note">Missed &gt;50% counts passed names that ran more than 50% after the pass — the honest hit-rate meter. Discovery prices never change; they are the measurement baseline.</div>';
+  v.innerHTML=h;
+}
+function render(){
+  renderBoard();renderLedger();
+  document.getElementById("sync-note").textContent=S.lastSync?("Last Sheets sync: "+new Date(S.lastSync).toLocaleString()):"Not synced yet.";
+}
+render();
+showSeg(S.seg||"board");
+pullSheet(false);
+refreshPrices();
+</script>
+</body>
+</html>
